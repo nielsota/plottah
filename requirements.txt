@@ -1,0 +1,3 @@
+# dev requirements
+pre-commit==2.9.2
+pytest==4.3.1
