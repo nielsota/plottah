@@ -27,3 +27,6 @@ The virtual environment should be activated every time you start a new shell ses
 > ```shell
 > .venv\Scripts\activate.bat
 > ```
+
+for confusion on linting missing imports
+linting https://github.com/orgs/community/discussions/46885

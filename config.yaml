@@ -1,0 +1,21 @@
+file_path : /Users/otaniels/Library/CloudStorage/OneDrive-TheBostonConsultingGroup,Inc/Documents/NielsOta/Code/univariate_plotter/data/test_sample.csv
+output_path: /Users/otaniels/Library/CloudStorage/OneDrive-TheBostonConsultingGroup,Inc/Documents/NielsOta/Code/univariate_plotter/data/images
+
+features:
+  - A_TENURE_MONTHS_N
+  - D_MAX_DAYS_PAST_DUE_6M_N
+  - LN_LEXISNEXIS_SBFE_SCORE_CURRENT_N
+  - T_TOTAL_TRX_NON_FUEL_PROPORTION_1M_N
+  #- poop
+
+target: FLAG_60_DPD_366_DAYS
+
+primary_color: 40, 186, 116
+secondary_color: 41, 94, 126
+tertiary_color: 153, 204, 235
+grey_tint_color: 110, 111, 115
+
+#primary_color: 231, 30, 87
+#secondary_color: 153, 204, 235
+#tertiary_color: 254, 189, 64
+#grey_tint_color: 110, 111, 115
