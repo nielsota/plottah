@@ -2,11 +2,17 @@ file_path : /Users/otaniels/Library/CloudStorage/OneDrive-TheBostonConsultingGro
 output_path: /Users/otaniels/Library/CloudStorage/OneDrive-TheBostonConsultingGroup,Inc/Documents/NielsOta/Code/univariate_plotter/data/images
 
 features:
-  - A_TENURE_MONTHS_N
-  - D_MAX_DAYS_PAST_DUE_6M_N
-  - LN_LEXISNEXIS_SBFE_SCORE_CURRENT_N
-  - T_TOTAL_TRX_NON_FUEL_PROPORTION_1M_N
-  #- D_STROOPWAFFELS_AVG_6M_N 
+  - name: A_TENURE_MONTHS_N
+  - name: D_MAX_DAYS_PAST_DUE_6M_N
+    bins: 
+          - 0
+          - 1
+          - 5
+          - 10
+          - 100
+  - name: LN_LEXISNEXIS_SBFE_SCORE_CURRENT_N
+  - name: T_TOTAL_TRX_NON_FUEL_PROPORTION_1M_N
+  #- name: D_STROOPWAFFELS_AVG_6M_N 
 
 target: FLAG_60_DPD_366_DAYS
 #target: D_STROOPWAFFELS_AVG_6M_N 

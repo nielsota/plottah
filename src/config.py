@@ -1,3 +1,4 @@
+from typing import Optional
 import yaml
 import pandas as pd
 
@@ -5,9 +6,6 @@ from pathlib import Path
 from pydantic import BaseModel, ValidationError, validator
 
 ROOT_DIR = Path(__file__).parent.parent
-
-a = "a"
-b = f"b"
 
 
 def parse_from_yaml(path_to_yaml):
@@ -20,10 +18,20 @@ def parse_from_yaml(path_to_yaml):
     return config
 
 
+class FeatureSchema(BaseModel):
+    name: str
+    bins: Optional[list[int]]
+    type: Optional[str]
+
+    # needs to be hashable: https://stackoverflow.com/questions/63721614/unhashable-type-in-fastapi-request
+    class Config:
+        frozen = True
+
+
 class Settings(BaseModel):
     file_path: Path
     output_path: Path
-    features: list[str]
+    features: list[FeatureSchema]
     target: str
     primary_color: str
     secondary_color: str
@@ -51,7 +59,7 @@ class Settings(BaseModel):
 
         sample_df = pd.read_csv(values["file_path"], nrows=10)
         for feature in v:
-            if feature not in sample_df.columns:
+            if feature.name not in sample_df.columns:
                 raise ValueError(
                     f"Column: {feature} does not exist is dataframe \n Please ensure the config.yaml contains only valid columns"
                 )
@@ -75,3 +83,9 @@ class Settings(BaseModel):
 
 config = parse_from_yaml(str(ROOT_DIR / "config.yaml"))
 settings = Settings(**config)
+
+if __name__ == "__main__":
+    config = parse_from_yaml(str(ROOT_DIR / "config.yaml"))
+    print(config)
+    settings = Settings(**config)
+    print(settings)
