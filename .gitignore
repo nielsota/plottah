@@ -1,6 +1,6 @@
 
 # user configuration file
-config.*.yml
+#config.*.yml
 
 *.db
 *~
