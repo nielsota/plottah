@@ -38,6 +38,8 @@ Then install the repository locally
 pip install -e .
 ```
 
+Next, update the config.yaml how you see fit, and then to generate the images run:
+```shell
+python -m plotta
+```
 
-for confusion on linting missing imports
-linting https://github.com/orgs/community/discussions/46885

@@ -1,6 +1,6 @@
-from plot_handler import PlotHandler
-from config import settings
-from colors import PlotColors
+from plotta.plot_handler import PlotHandler
+from plotta.config import settings
+from plotta.colors import PlotColors
 from typing import Dict
 
 import pathlib
