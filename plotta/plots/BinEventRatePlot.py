@@ -5,8 +5,8 @@ import pandas as pd
 from dataclasses import dataclass, field
 
 from .PlotProtocol import PlotProtocol
-from src.colors import PlotColors
-from src.utils import get_bins, get_min_max_adj, get_labels_from_bins
+from plotta.colors import PlotColors
+from plotta.utils import get_bins, get_min_max_adj, get_labels_from_bins
 
 
 @dataclass

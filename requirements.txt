@@ -15,4 +15,5 @@ seaborn
 sklearn
 tqdm
 scikit-learn
+scipy
 kaleido

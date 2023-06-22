@@ -6,8 +6,7 @@ from typing import Dict
 import pathlib
 import pandas as pd
 
-from src.plots import DistPlot, RocCurvePlot
-from src.plots.BinEventRatePlot import BinEventRatePlot
+from plotta.plots import DistPlot, RocCurvePlot, BinEventRatePlot
 
 
 def build_univariate_plot(

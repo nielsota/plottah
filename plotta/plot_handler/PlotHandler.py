@@ -1,7 +1,6 @@
 from plotly.subplots import make_subplots
 from dataclasses import dataclass, field
-from src.colors import PlotColors
-from src.plots import PlotProtocol, RocCurvePlot, DistPlot, BinEventRatePlot
+from plotta.plots import PlotProtocol
 import pathlib
 
 import pandas as pd
@@ -47,6 +46,12 @@ class PlotHandler:
         This post init method uses the specs to obtain a map from the position of the subplot to what x and y ref it should use.
 
         """
+        # check if default spec was used
+        self.default_spec = self.specs == [
+            [{}, {}],
+            [{"colspan": 2, "secondary_y": True}, None],
+        ]
+
         # make these in init later
         self.nrows = 2
         self.ncols = 2
@@ -105,7 +110,7 @@ class PlotHandler:
             legend=dict(
                 # the below if through experimentation
                 x=0.94,
-                y=0.36 + (1 - self.legend_xref) * 0.5,
+                y=0.36 + (1 - self.legend_xref) * 0.57,
                 xanchor="right",
                 yanchor="bottom",
             ),
@@ -180,6 +185,11 @@ class PlotHandler:
             None: but updates self.fig
 
         """
+        if not self.default_spec:
+            raise ValueError(
+                "build function only works for default specs, use build_subplot with each individual subplot for your specs"
+            )
+
         # do the math for each subplot
         topleft.do_math(df, feature_col, target)
         topright.do_math(df, feature_col, target)

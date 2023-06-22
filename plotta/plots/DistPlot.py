@@ -3,8 +3,8 @@ import plotly.figure_factory as ff
 from dataclasses import dataclass, field
 
 from .PlotProtocol import PlotProtocol
-from src.utils import remove_or_impute_nan_infs
-from src.colors import PlotColors
+from plotta.utils import remove_or_impute_nan_infs
+from plotta.colors import PlotColors
 
 
 @dataclass

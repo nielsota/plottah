@@ -3,9 +3,9 @@ import numpy as np
 from dataclasses import dataclass, field
 from sklearn import metrics
 
-from src.plots.PlotProtocol import PlotProtocol
-from src.utils import remove_or_impute_nan_infs
-from src.colors import PlotColors
+from plotta.plots.PlotProtocol import PlotProtocol
+from plotta.utils import remove_or_impute_nan_infs
+from plotta.colors import PlotColors
 
 
 @dataclass
