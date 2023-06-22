@@ -38,6 +38,6 @@ pip install -e .
 
 Next, update the config.yaml how you see fit, and then to generate the images run:
 ```shell
-python -m plotta
+python -m plottah
 ```
 
