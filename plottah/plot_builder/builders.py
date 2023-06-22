@@ -1,12 +1,12 @@
-from plotta.plot_handler import PlotHandler
-from plotta.config import settings
-from plotta.colors import PlotColors
+from plottah.plot_handler import PlotHandler
+from plottah.config import settings
+from plottah.colors import PlotColors
 from typing import Dict
 
 import pathlib
 import pandas as pd
 
-from plotta.plots import DistPlot, RocCurvePlot, BinEventRatePlot
+from plottah.plots import DistPlot, RocCurvePlot, BinEventRatePlot
 
 
 def build_univariate_plot(

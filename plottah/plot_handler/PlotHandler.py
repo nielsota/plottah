@@ -1,6 +1,6 @@
 from plotly.subplots import make_subplots
 from dataclasses import dataclass, field
-from plotta.plots import PlotProtocol
+from plottah.plots import PlotProtocol
 import pathlib
 
 import pandas as pd

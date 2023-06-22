@@ -1,6 +1,6 @@
-from plotta.plot_builder import build_univariate_plots
-from plotta.config import settings
-from plotta.colors import PlotColors
+from plottah.plot_builder import build_univariate_plots
+from plottah.config import settings
+from plottah.colors import PlotColors
 
 import pandas as pd
 

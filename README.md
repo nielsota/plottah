@@ -1,7 +1,5 @@
-# Ota-Template
-
 *Copyright © 2023 by Boston Consulting Group. All rights reserved*
-# SmartBanking PLotting tool
+# SmartBanking Plotting tool
 
 ## Setup
 
