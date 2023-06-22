@@ -1,6 +1,7 @@
 from typing import Optional
 import yaml
 import pandas as pd
+import re
 
 from pathlib import Path
 from pydantic import BaseModel, ValidationError, validator
@@ -16,6 +17,11 @@ def parse_from_yaml(path_to_yaml):
         config = yaml.safe_load(f)
 
     return config
+
+
+def validate_color_string(color_string):
+    pattern = r"^\d{1,3},\s?\d{1,3},\s?\d{1,3}$"
+    return re.match(pattern, color_string) is not None
 
 
 class FeatureSchema(BaseModel):
@@ -41,21 +47,30 @@ class Settings(BaseModel):
     @validator("file_path", "output_path")
     def path_must_exist(cls, v):
         """
-        validators are classmethods that take a instance variable (v) and do validation, and return v if tests passed
+        validates path specified in config. the path/file must exist before the code can execute the ensure valid reading and writing locations exist
         """
-        # make directory if not exists
+
         if not v.exists():
             raise ValueError(
                 f"Directory: {v.relative_to(ROOT_DIR)} does not exist \n Please ensure the config.yaml contains a valid directory"
             )
         return v
 
+    @validator("primary_color", "secondary_color", "tertiary_color", "grey_tint_color")
+    def test_color_pattern(cls, v):
+        """
+        matches the string pattern provided against a format of 3 digits, 3 digits, 3 digits
+        """
+
+        if not validate_color_string(v):
+            raise ValueError(f"Colors must be of format DDD, DDD, DDD (now {v})")
+        return v
+
     @validator("features")
     def check_columns_exist(cls, v, values):
         """
-        validators are classmethods that take a instance variable (v) and do validation, and return v if tests passed
+        validates that each of the columns provided in the config exists in the dataframe
         """
-        # make directory if not exists
 
         sample_df = pd.read_csv(values["file_path"], nrows=10)
         for feature in v:
@@ -68,9 +83,8 @@ class Settings(BaseModel):
     @validator("target")
     def check_target_exists(cls, v, values):
         """
-        validators are classmethods that take a instance variable (v) and do validation, and return v if tests passed
+        validates that the target exists in the dataframe
         """
-        # make directory if not exists
 
         sample_df = pd.read_csv(values["file_path"], nrows=10)
 

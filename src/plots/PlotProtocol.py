@@ -18,14 +18,17 @@ class PlotProtocol(Protocol):
     def get_traces(self) -> List:
         ...
 
-    def get_x_axes_layout(self, row, col):
+    def get_x_axes_layout(self, row: int, col: int):
         ...
 
-    def get_y_axes_layout(self, row, col):
+    def get_y_axes_layout(self, row: int, col: int):
         ...
 
-    def get_annotations(self, ref) -> List:
+    def get_annotations(self, ref: str) -> List[dict]:
         ...
+
+    def get_secondary_y_axis_title(self):
+        return None
 
     def show_plot(self, show_figure: bool = True) -> go.Figure:
         # create figure with single graph
@@ -33,8 +36,11 @@ class PlotProtocol(Protocol):
         row, col = 1, 1
 
         # add traces
-        for trace, share_y in self.get_traces():
-            figure.add_trace(trace, secondary_y=share_y)
+        for trace_dict in self.get_traces():
+            figure.add_trace(
+                trace_dict["trace"],
+                secondary_y=trace_dict["secondary_y"],
+            )
 
         # add annotations
         for annotation in self.get_annotations("x1", "y1"):
@@ -46,6 +52,11 @@ class PlotProtocol(Protocol):
 
         if self.get_y_axes_layout(row, col) is not None:
             figure.update_yaxes(**self.get_y_axes_layout(row, col))
+
+        # update secondary y_axis if applicable
+        if self.get_secondary_y_axis_title() is not None:
+            print(self.get_secondary_y_axis_title())
+            figure.layout["yaxis2"].title.text = self.get_secondary_y_axis_title()
 
         if show_figure:
             figure.show()

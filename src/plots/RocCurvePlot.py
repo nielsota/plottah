@@ -42,8 +42,8 @@ class RocCurvePlot(PlotProtocol):
     def get_traces(self):
         return [
             # plot the roc-curve
-            (
-                go.Scatter(
+            {
+                "trace": go.Scatter(
                     x=self.fpr,
                     y=self.tpr,
                     mode="lines",
@@ -55,11 +55,11 @@ class RocCurvePlot(PlotProtocol):
                     showlegend=False,
                 ),
                 # share y
-                False,
-            ),
+                "secondary_y": False,
+            },
             # plot the baseline
-            (
-                go.Scatter(
+            {
+                "trace": go.Scatter(
                     x=np.linspace(0, 1, 10),
                     y=np.linspace(0, 1, 10),
                     mode="lines",
@@ -72,13 +72,13 @@ class RocCurvePlot(PlotProtocol):
                     showlegend=False,
                 ),
                 # share y
-                False,
-            ),
+                "secondary_y": False,
+            },
         ]
 
     def get_x_axes_layout(self, row, col):
         return dict(
-            title_text="Cumulated goods",
+            title_text="Cumulated negatives",
             title_font={"size": 12},
             range=[0, 1],
             row=row,
@@ -88,7 +88,7 @@ class RocCurvePlot(PlotProtocol):
 
     def get_y_axes_layout(self, row, col):
         return dict(
-            title_text="Cumulated bads",
+            title_text="Cumulated positives",
             title_font={"size": 12},
             range=[0, 1.05],
             row=row,

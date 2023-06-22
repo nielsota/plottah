@@ -44,8 +44,8 @@ class DistPlot(PlotProtocol):
     def get_traces(self):
         return [
             # plot the first distribution:
-            (
-                go.Scatter(
+            {
+                "trace": go.Scatter(
                     self.distplot["data"][2],
                     line=dict(color=self.colors.get_rgba(), width=0.5),
                     fill="tonexty",
@@ -53,11 +53,11 @@ class DistPlot(PlotProtocol):
                     hoverinfo=self.hoverinfo,
                 ),
                 # share y
-                False,
-            ),
+                "secondary_y": False,
+            },
             # plot the second distribution
-            (
-                go.Scatter(
+            {
+                "trace": go.Scatter(
                     self.distplot["data"][3],
                     line=dict(color=self.colors.get_rgba("secondary_color"), width=0.5),
                     fill="tozeroy",
@@ -65,8 +65,8 @@ class DistPlot(PlotProtocol):
                     hoverinfo=self.hoverinfo,
                 ),
                 # share y
-                False,
-            ),
+                "secondary_y": False,
+            },
         ]
 
     def get_x_axes_layout(self, row, col):

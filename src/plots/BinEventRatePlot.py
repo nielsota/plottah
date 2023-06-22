@@ -1,3 +1,4 @@
+from typing import Dict, List
 import plotly.graph_objects as go
 import numpy as np
 import pandas as pd
@@ -141,11 +142,17 @@ class BinEventRatePlot(PlotProtocol):
             f"{feature_col}_len"
         ].fillna(0)
 
-    def get_traces(self):
+        # make fractions
+        self.df_binned[f"{feature_col}_len"] = (
+            self.df_binned[f"{feature_col}_len"]
+            / self.df_binned[f"{feature_col}_len"].sum()
+        )
+
+    def get_traces(self) -> List[Dict]:
         return [
             # plot the first distribution:
-            (
-                go.Bar(
+            {
+                "trace": go.Bar(
                     x=self.labels,
                     y=self.df_binned[f"{self.feature_col}_len"],
                     marker_color=self.colors.get_rgba("secondary_color", opacity=0.1),
@@ -156,11 +163,11 @@ class BinEventRatePlot(PlotProtocol):
                     hoverinfo=self.hoverinfo,
                 ),
                 # share y
-                False,
-            ),
-            # plot binned event rate
-            (
-                go.Scatter(
+                "secondary_y": False,
+            },
+            # plot binned event rate baseline
+            {
+                "trace": go.Scatter(
                     x=self.labels,
                     y=[self.event_rate] * len(self.labels),
                     mode="lines",
@@ -173,11 +180,10 @@ class BinEventRatePlot(PlotProtocol):
                     name=f"General Event Rate: ({'{:.1%}'.format(self.event_rate)})",
                 ),
                 # share y
-                True,
-            ),
-            # plot eventrate baseline
-            (
-                go.Scatter(
+                "secondary_y": True,
+            },
+            {
+                "trace": go.Scatter(
                     x=self.labels,
                     y=self.df_binned[f"{self.target_col}_mean"],
                     mode="lines+markers",
@@ -189,8 +195,8 @@ class BinEventRatePlot(PlotProtocol):
                     name="Event Rate",
                 ),
                 # share y
-                True,
-            ),
+                "secondary_y": True,
+            },
         ]
 
     def get_x_axes_layout(self, row, col):
@@ -205,13 +211,16 @@ class BinEventRatePlot(PlotProtocol):
 
     def get_y_axes_layout(self, row, col):
         return dict(
-            title_text=f"# Observations",
+            title_text=f"Fraction of Observations",
             title_font={"size": 12},
-            # range=[0, 1.2 * self.df_binned[f"{self.feature_col}_len"].max()],
+            range=[0, 1.2 * self.df_binned[f"{self.feature_col}_len"].max()],
             row=row,
             col=col,
             title_standoff=5,  # decrease space between title and plot
         )
+
+    def get_secondary_y_axis_title(self):
+        return "Event Rate"
 
     def get_annotations(self, xref, yref):
         return []

@@ -55,8 +55,19 @@ class PlotHandler:
         self.xrefs = [
             [f"x?" for j, el in enumerate(row)] for i, row in enumerate(self.specs)
         ]
+
         self.yrefs = [
             [f"y{i * self.ncols + j + 1}" for j, el in enumerate(row)]
+            for i, row in enumerate(self.specs)
+        ]
+
+        self.yaxes = [
+            [f"yaxis{i * self.ncols + j + 1}" for j, el in enumerate(row)]
+            for i, row in enumerate(self.specs)
+        ]
+
+        self.xaxes = [
+            [f"xaxis{i * self.ncols + j + 1}" for j, el in enumerate(row)]
             for i, row in enumerate(self.specs)
         ]
 
@@ -92,8 +103,9 @@ class PlotHandler:
             width=1000,
             height=800,
             legend=dict(
-                x=0.9,
-                y=0.16 + (1 - self.legend_xref) * 0.5,
+                # the below if through experimentation
+                x=0.94,
+                y=0.36 + (1 - self.legend_xref) * 0.5,
                 xanchor="right",
                 yanchor="bottom",
             ),
@@ -113,8 +125,13 @@ class PlotHandler:
 
         """
         # add traces
-        for trace, share_y in subplot.get_traces():
-            self.fig.add_trace(trace, row=row, col=col, secondary_y=share_y)
+        for trace_dict in subplot.get_traces():
+            self.fig.add_trace(
+                trace_dict["trace"],
+                secondary_y=trace_dict["secondary_y"],
+                row=row,
+                col=col,
+            )
 
         # add annotations
         for annotation in subplot.get_annotations(
@@ -128,6 +145,14 @@ class PlotHandler:
 
         if subplot.get_y_axes_layout(row, col) is not None:
             self.fig.update_yaxes(**subplot.get_y_axes_layout(row, col))
+
+        # update secondary y_axis if applicable
+        if subplot.get_secondary_y_axis_title() is not None:
+            # name of axis contained in self.yaxes on index (row - 1, col - 1) is the primary axes, plotly will store the secondary yaxis one further; i.e. stored at index (row - 1 , col)
+            secondary_yaxis = self.yaxes[row - 1][col]
+            self.fig.layout[
+                secondary_yaxis
+            ].title.text = subplot.get_secondary_y_axis_title()
 
     def build(
         self,
