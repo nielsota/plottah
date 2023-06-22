@@ -41,3 +41,5 @@ Next, update the config.yaml how you see fit, and then to generate the images ru
 python -m plottah
 ```
 
+See notebooks for examples on how to run code inline
+
