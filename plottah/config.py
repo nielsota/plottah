@@ -95,11 +95,12 @@ class Settings(BaseModel):
         return v
 
 
-config = parse_from_yaml(str(ROOT_DIR / "config.yaml"))
+config = parse_from_yaml(str(ROOT_DIR / "config_bank.yaml"))
+# config = parse_from_yaml(str(ROOT_DIR / "config.yaml"))
 settings = Settings(**config)
 
 if __name__ == "__main__":
-    config = parse_from_yaml(str(ROOT_DIR / "config.yaml"))
+    config = parse_from_yaml(str(ROOT_DIR / "config_bank.yaml"))
     print(config)
     settings = Settings(**config)
     print(settings)

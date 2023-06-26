@@ -1,5 +1,4 @@
 from plottah.plot_handler import PlotHandler
-from plottah.config import settings
 from plottah.colors import PlotColors
 from typing import Dict
 

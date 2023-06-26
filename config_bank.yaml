@@ -1,0 +1,20 @@
+file_path : ./data/bank-additional-full.csv
+output_path: ./data/images
+
+features:
+  - name: euribor3m
+  - name: cons.price.idx
+
+target: y1
+#target: D_STROOPWAFFELS_AVG_6M_N 
+
+
+primary_color: 40, 186, 116
+secondary_color: 41, 94, 126
+tertiary_color: 153, 204, 235
+grey_tint_color: 110, 111, 115
+
+#primary_color: 231, 30, 87
+#secondary_color: 153, 204, 235
+#tertiary_color: 254, 189, 64
+#grey_tint_color: 110, 111, 115
