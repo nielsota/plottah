@@ -1,4 +1,4 @@
-name: Upload to PyPI
+name: testing
 
 on:
   push:
@@ -28,4 +28,5 @@ jobs:
       - name: Run tests
         run: |
           pip install pytest
+          pip install pyyaml
           pytest
