@@ -44,19 +44,29 @@ class Settings(BaseModel):
     tertiary_color: str
     grey_tint_color: str
 
-    @validator("file_path", "output_path")
+    @validator("file_path", "output_path", pre=True)
     def path_must_exist(cls, v):
         """
         validates path specified in config. the path/file must exist before the code can execute the ensure valid reading and writing locations exist
         """
 
+        if not isinstance(v, Path):
+            v = Path(v)
+
         if not v.exists():
             raise ValueError(
                 f"Directory: {v.relative_to(ROOT_DIR)} does not exist \n Please ensure the config.yaml contains a valid directory"
             )
+        print(f"{v} passed!")
         return v
 
-    @validator("primary_color", "secondary_color", "tertiary_color", "grey_tint_color")
+    @validator(
+        "primary_color",
+        "secondary_color",
+        "tertiary_color",
+        "grey_tint_color",
+        pre=True,
+    )
     def test_color_pattern(cls, v):
         """
         matches the string pattern provided against a format of 3 digits, 3 digits, 3 digits
@@ -72,7 +82,11 @@ class Settings(BaseModel):
         validates that each of the columns provided in the config exists in the dataframe
         """
 
+        # can only use file path if test was succesfull
+        if "file_path" not in values.keys():
+            raise ValueError("cannot test features because file_path invalid")
         sample_df = pd.read_csv(values["file_path"], nrows=10)
+
         for feature in v:
             if feature.name not in sample_df.columns:
                 raise ValueError(
@@ -86,6 +100,9 @@ class Settings(BaseModel):
         validates that the target exists in the dataframe
         """
 
+        # can only use file path if test was succesfull
+        if "file_path" not in values.keys():
+            raise ValueError("cannot test features because file_path invalid")
         sample_df = pd.read_csv(values["file_path"], nrows=10)
 
         if v not in sample_df.columns:
@@ -100,7 +117,7 @@ config = parse_from_yaml(str(ROOT_DIR / "config.yaml"))
 settings = Settings(**config)
 
 if __name__ == "__main__":
-    config = parse_from_yaml(str(ROOT_DIR / "config_bank.yaml"))
+    config = parse_from_yaml(str(ROOT_DIR / "config.yaml"))
     print(config)
     settings = Settings(**config)
     print(settings)
