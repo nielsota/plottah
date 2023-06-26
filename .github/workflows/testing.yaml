@@ -27,6 +27,4 @@ jobs:
 
       - name: Run tests
         run: |
-          pip install pytest
-          pip install pyyaml
-          pytest
+          poetry run pytest

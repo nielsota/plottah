@@ -6,8 +6,8 @@ import pytest
 @pytest.fixture
 def return_settings():
     return {
-        "file_path": "/Users/otaniels/Library/CloudStorage/OneDrive-TheBostonConsultingGroup,Inc/Documents/NielsOta/Code/univariate_plotter/data/test_sample.csv",
-        "output_path": "/Users/otaniels/Library/CloudStorage/OneDrive-TheBostonConsultingGroup,Inc/Documents/NielsOta/Code/univariate_plotter/data/images",
+        "file_path": "./data/example_data/test_sample.csv",
+        "output_path": "./data/images",
         "features": [
             {"name": "A_TENURE_MONTHS_N"},
             {"name": "T_PPG_AVG_6M_N"},
