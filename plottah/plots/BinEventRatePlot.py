@@ -70,7 +70,7 @@ class BinEventRatePlot(PlotProtocol):
                 method=method,
             )
         )
-        print(self.bins)
+
         # convert type to list
         self.bins = list(self.bins)
 
@@ -98,7 +98,6 @@ class BinEventRatePlot(PlotProtocol):
 
         # Create plot labels: [(4, 6), (6, 10), ...]
         self.labels = get_labels_from_bins(self.bins)
-        print(self.labels)
 
         ## CLIPPING
 

@@ -1,5 +1,5 @@
-file_path : /Users/otaniels/Library/CloudStorage/OneDrive-TheBostonConsultingGroup,Inc/Documents/NielsOta/Code/univariate_plotter/data/test_sample.csv
-output_path: /Users/otaniels/Library/CloudStorage/OneDrive-TheBostonConsultingGroup,Inc/Documents/NielsOta/Code/univariate_plotter/data/images
+file_path : ./data/example_data/test_sample.csv
+output_path: ./data/images
 
 features:
   - name: A_TENURE_MONTHS_N
@@ -17,7 +17,6 @@ features:
 
 target: FLAG_60_DPD_366_DAYS
 #target: D_STROOPWAFFELS_AVG_6M_N 
-
 
 #primary_color: 40, 186, 116
 #secondary_color: 41, 94, 126

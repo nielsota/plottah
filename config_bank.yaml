@@ -1,4 +1,4 @@
-file_path : ./data/bank-additional-full.csv
+file_path : ./data/example_data/bank-additional-full.csv
 output_path: ./data/images
 
 features:
