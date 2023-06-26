@@ -70,6 +70,7 @@ class BinEventRatePlot(PlotProtocol):
                 method=method,
             )
         )
+        print(self.bins)
         # convert type to list
         self.bins = list(self.bins)
 
@@ -97,6 +98,7 @@ class BinEventRatePlot(PlotProtocol):
 
         # Create plot labels: [(4, 6), (6, 10), ...]
         self.labels = get_labels_from_bins(self.bins)
+        print(self.labels)
 
         ## CLIPPING
 
@@ -213,7 +215,7 @@ class BinEventRatePlot(PlotProtocol):
         return dict(
             title_text=f"Fraction of Observations",
             title_font={"size": 12},
-            range=[0, 1.2 * self.df_binned[f"{self.feature_col}_len"].max()],
+            # range=[0, 1.2 * self.df_binned[f"{self.feature_col}_len"].max()],
             row=row,
             col=col,
             title_standoff=5,  # decrease space between title and plot

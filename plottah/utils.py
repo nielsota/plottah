@@ -140,8 +140,13 @@ def get_labels_from_bins(bins: list) -> list:
 
     example: [0, 1, 2] -> ['(0.00, 1.00]', '(1.00, 2.00]']
     """
+
+    precision = 2
+    while len(bins) > len(np.unique(np.round(bins, precision))):
+        precision += 1
+
     labels = [
-        f'({"{:,.2f}".format(bins[i])}, {"{:,.2f}".format(bins[i+1])}]'
+        f'({"{:,.{prec}f}".format(bins[i], prec=precision)}, {"{:,.{prec}f}".format(bins[i+1], prec=precision)}]'
         for i in range(len(bins) - 1)
     ]
     return labels

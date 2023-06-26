@@ -3,6 +3,7 @@ output_path: /Users/otaniels/Library/CloudStorage/OneDrive-TheBostonConsultingGr
 
 features:
   - name: A_TENURE_MONTHS_N
+  - name: T_PPG_AVG_6M_N
   - name: D_MAX_DAYS_PAST_DUE_6M_N
     bins: 
           - 0
