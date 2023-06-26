@@ -6,7 +6,7 @@ on:
       - dev
 
 jobs:
-  upload_to_pypi:
+  build:
     runs-on: ubuntu-latest
 
     steps:
