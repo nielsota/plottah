@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build:
+  push_to_pypi:
     runs-on: ubuntu-latest
 
     steps:
@@ -25,7 +25,7 @@ jobs:
           poetry install
 
       - name: Bump version
-        run: pip install bump2version && bump2version patch --allow-dirty
+        run: pip install bump2version && bump2version minor --allow-dirty
 
       - name: Build package
         run: poetry build
