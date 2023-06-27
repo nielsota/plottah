@@ -12,6 +12,7 @@ def build_univariate_plot(
     df,
     feature_col: str,
     target: str,
+    feature_type: str = "float",
     colors: PlotColors = PlotColors(),
     show_plot: bool = True,
     hoverinfo="all",
@@ -28,7 +29,11 @@ def build_univariate_plot(
     roc_plot = RocCurvePlot(hoverinfo=hoverinfo, colors=colors)
     dist_plot = DistPlot(hoverinfo=hoverinfo, colors=colors)
     event_plot = BinEventRatePlot(
-        hoverinfo=hoverinfo, colors=colors, n_bins=n_bins, bins=bins
+        hoverinfo=hoverinfo,
+        colors=colors,
+        n_bins=n_bins,
+        bins=bins,
+        feature_type=feature_type,
     )
 
     specs = (
@@ -51,6 +56,7 @@ def build_univariate_plots(
     df,
     features: list,
     target: str,
+    feature_types: dict,
     save_directory: pathlib.Path() = None,
     colors: PlotColors = PlotColors(),
     show_plot: bool = False,
@@ -86,9 +92,10 @@ def build_univariate_plots(
             raise ValueError(f"{feature} not in columns of dataframe")
 
         fig = build_univariate_plot(
-            df,
-            feature,
-            target,
+            df=df,
+            feature_col=feature,
+            target=target,
+            feature_type=feature_types[feature],
             colors=colors,
             show_plot=show_plot,
             hoverinfo=hoverinfo,

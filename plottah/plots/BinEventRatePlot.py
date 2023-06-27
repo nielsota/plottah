@@ -11,17 +11,18 @@ from plottah.utils import get_bins, get_min_max_adj, get_labels_from_bins
 
 @dataclass
 class CategoricalBinner:
-    _labels: list = field(default_factory=None)
+    _labels: list = field(default_factory=lambda: None)
 
     def get_labels(self):
         return self._labels.copy()
 
-    def add_bins(self, df: pd.DataFrame, feature_col: str):
+    def add_bins(self, df: pd.DataFrame, feature_col: str) -> pd.DataFrame:
         # Extract unique values
         unique_vals = df[feature_col].sort_values().unique()
 
         # Convert sorted elements to int
-        mapping = pd.factorize(unique_vals, na_sentinel=len(unique_vals))
+        # mapping = pd.factorize(unique_vals, na_sentinel=len(unique_vals))
+        mapping = pd.factorize(unique_vals, use_na_sentinel=False)
 
         # Create mapping
         mapping_values = list(mapping[0])
@@ -34,9 +35,102 @@ class CategoricalBinner:
         df = df.assign(bins=df[feature_col].map(mapping_dict))
 
         # Set labels for plotting
-        self._labels = mapping_keys
+        self._labels = [str(key) for key in mapping_keys]
+        self._labels[-1] = "NA"
 
-        return df
+        return df, self._labels
+
+
+@dataclass
+class StandardBinner:
+    _labels: list = field(default_factory=lambda: None)
+
+    def get_labels(self):
+        return self._labels.copy()
+
+    def add_bins(
+        self,
+        df: pd.DataFrame,
+        feature_col: str,
+        n_bins: int,
+        bins=None,
+        method="quantile",
+    ) -> pd.DataFrame:
+        # Get unadjusted min and max
+        min_val, max_val = get_min_max_adj(df, feature_col)
+        min_val_adj, max_val_adj = get_min_max_adj(df, feature_col)
+
+        ## BINNING
+        bins = (
+            bins
+            if bins is not None
+            else get_bins(
+                df,
+                feature_col,
+                min_val_adj,
+                max_val_adj,
+                n_bins=n_bins,
+                method=method,
+            )
+        )
+
+        # convert type to list
+        bins = list(bins)
+
+        # set first and last value back to min and max before imputing
+        bins[0] = min_val
+        bins[n_bins - 1] = max_val
+
+        # update number of bins
+        assert n_bins == len(bins)
+
+        # Create bins (return None if binning is not successfull)
+        try:
+            # create new column indicating what bin record belongs to
+            df = df.assign(
+                bins=pd.cut(
+                    x=df.loc[:, feature_col],
+                    bins=bins,
+                    include_lowest=True,
+                    right=True,
+                    labels=False,
+                )
+            )
+        except Exception as e:
+            raise ValueError("{self.feature_col} cannot be binned")
+
+        # Create plot labels: [(4, 6), (6, 10), ...]
+        self._labels = get_labels_from_bins(bins)
+
+        ## CLIPPING
+
+        # Clip values according to min/max values
+        df[feature_col].clip(lower=min_val, upper=max_val, inplace=True)
+
+        # Ensure clipping values does not remove all but a single value
+        if df[feature_col].nunique() < 2:
+            raise ValueError(
+                "{self.feature_col} contains less than 2 features after clipping outliers!!"
+            )
+
+        ## NA's
+
+        # Handle NAs
+        if df["bins"].isna().sum() > 0:
+            # replace the NA bin w/ n_bins - 1
+            df.loc[:, "bins"] = df.loc[:, "bins"].where(
+                ~df.loc[:, "bins"].isna(), n_bins - 1
+            )
+            self._labels.append("NA")
+            n_bins += 1
+
+        # Convert bins to categories
+        df.bins = df.bins.astype("category")
+
+        # Set all categories
+        df.bins = df.bins.cat.set_categories(list(range(n_bins - 1)))
+
+        return df, self._labels
 
 
 @dataclass
@@ -50,6 +144,9 @@ class BinEventRatePlot(PlotProtocol):
 
     # set hover setting
     hoverinfo: str = field(default_factory=lambda: "skip")
+
+    # set default feature type
+    feature_type: str = field(default_factory=lambda: "float")
 
     def do_math(
         self,
@@ -82,80 +179,15 @@ class BinEventRatePlot(PlotProtocol):
         n_unique_feat_vals = df[feature_col].nunique()
         self.n_bins = np.minimum(n_unique_feat_vals, self.n_bins)
 
-        # Get unadjusted min and max
-        min_val, max_val = get_min_max_adj(self.df, feature_col)
-        min_val_adj, max_val_adj = get_min_max_adj(self.df, feature_col)
-
-        ## BINNING
-        self.bins = (
-            self.bins
-            if self.bins is not None
-            else get_bins(
-                self.df,
-                self.feature_col,
-                self.target_col,
-                min_val_adj,
-                max_val_adj,
-                n_bins=self.n_bins,
-                method=method,
+        if self.feature_type == "categorical":
+            print("using categorical binner")
+            binner = CategoricalBinner()
+            self.df, self.labels = binner.add_bins(self.df, self.feature_col)
+        else:
+            binner = StandardBinner()
+            self.df, self.labels = binner.add_bins(
+                self.df, self.feature_col, self.n_bins, self.bins, method=method
             )
-        )
-
-        # convert type to list
-        self.bins = list(self.bins)
-
-        # set first and last value back to min and max before imputing
-        self.bins[0] = min_val
-        self.bins[self.n_bins - 1] = max_val
-
-        # update number of bins
-        assert self.n_bins == len(self.bins)
-
-        # Create bins (return None if binning is not successfull)
-        try:
-            # create new column indicating what bin record belongs to
-            self.df = self.df.assign(
-                bins=pd.cut(
-                    x=self.df.loc[:, feature_col],
-                    bins=self.bins,
-                    include_lowest=True,
-                    right=True,
-                    labels=False,
-                )
-            )
-        except Exception as e:
-            raise ValueError("{self.feature_col} cannot be binned")
-
-        # Create plot labels: [(4, 6), (6, 10), ...]
-        self.labels = get_labels_from_bins(self.bins)
-
-        ## CLIPPING
-
-        # Clip values according to min/max values
-        df[feature_col].clip(lower=min_val, upper=max_val, inplace=True)
-
-        # Ensure clipping values does not remove all but a single value
-        if df[feature_col].nunique() < 2:
-            raise ValueError(
-                "{self.feature_col} contains less than 2 features after clipping outliers!!"
-            )
-
-        ## NA's
-
-        # Handle NAs
-        if self.df["bins"].isna().sum() > 0:
-            # replace the NA bin w/ n_bins - 1
-            self.df.loc[:, "bins"] = self.df.loc[:, "bins"].where(
-                ~self.df.loc[:, "bins"].isna(), self.n_bins - 1
-            )
-            self.labels.append("NA")
-            self.n_bins += 1
-
-        # Convert bins to categories
-        self.df.bins = self.df.bins.astype("category")
-
-        # Set all categories
-        self.df.bins = self.df.bins.cat.set_categories(list(range(self.n_bins - 1)))
 
         # Group into bins and calculate required metrics
         self.df_binned = self.df.groupby("bins").agg(

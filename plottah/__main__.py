@@ -25,11 +25,19 @@ def main():
         for feature_schema in settings.features
     }
 
+    feature_types = {
+        feature_schema.name: feature_schema.type
+        if feature_schema.type is not None
+        else "float"
+        for feature_schema in settings.features
+    }
+
     build_univariate_plots(
-        pd.read_csv(settings.file_path),
-        features,
-        settings.target,
-        settings.output_path,
+        df=pd.read_csv(settings.file_path),
+        features=features,
+        target=settings.target,
+        feature_types=feature_types,
+        save_directory=settings.output_path,
         colors=color_palette,
         bins=bins,
     )

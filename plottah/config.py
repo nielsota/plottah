@@ -6,7 +6,7 @@ import re
 from pathlib import Path
 from pydantic import BaseModel, ValidationError, validator
 
-
+# use this over Literal to make custom error containing more info
 ALLOWED_TYPES = ["float", "int", "categorical"]
 ROOT_DIR = Path(__file__).parent.parent
 
@@ -41,6 +41,7 @@ class FeatureSchema(BaseModel):
             raise ValueError(
                 f'Type for {values["name"]} must be in {ALLOWED_TYPES}, you passed type: {v}'
             )
+        return v
 
 
 class Settings(BaseModel):

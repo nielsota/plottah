@@ -67,7 +67,6 @@ def remove_or_impute_nan_infs(
 def get_bins(
     df: pd.DataFrame,
     feature_col: str,
-    target_col: str,
     min_val_adj: float,
     max_val_adj: float,
     n_bins: int = 10,
