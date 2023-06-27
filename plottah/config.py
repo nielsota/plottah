@@ -73,7 +73,7 @@ class Settings(BaseModel):
 
         if not v.exists():
             raise ValueError(
-                f"Directory: {v.relative_to(ROOT_DIR)} does not exist \n Please ensure the config.yaml contains a valid directory"
+                f"Directory: {v} does not exist \n Please ensure the config.yaml contains a valid directory"
             )
         return v
 
