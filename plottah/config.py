@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Literal
 import yaml
 import pandas as pd
 import re
@@ -6,6 +6,8 @@ import re
 from pathlib import Path
 from pydantic import BaseModel, ValidationError, validator
 
+
+ALLOWED_TYPES = ["float", "int", "categorical"]
 ROOT_DIR = Path(__file__).parent.parent
 
 
@@ -33,6 +35,13 @@ class FeatureSchema(BaseModel):
     class Config:
         frozen = True
 
+    @validator("type")
+    def validate_type(cls, v, values):
+        if v not in ALLOWED_TYPES:
+            raise ValueError(
+                f'Type for {values["name"]} must be in {ALLOWED_TYPES}, you passed type: {v}'
+            )
+
 
 class Settings(BaseModel):
     file_path: Path
@@ -57,7 +66,6 @@ class Settings(BaseModel):
             raise ValueError(
                 f"Directory: {v.relative_to(ROOT_DIR)} does not exist \n Please ensure the config.yaml contains a valid directory"
             )
-        print(f"{v} passed!")
         return v
 
     @validator(

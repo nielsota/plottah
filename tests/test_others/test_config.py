@@ -1,4 +1,4 @@
-from plottah.config import Settings
+from plottah.config import Settings, FeatureSchema
 
 import pytest
 
@@ -23,6 +23,12 @@ def return_settings():
     }
 
 
+@pytest.fixture
+def return_feature():
+    return {"name": "A_TENURE_MONTHS_N", "type": "float", "bins": [0, 1, 2]}
+
+
+### Settings tests ###
 def test_correct_settings(return_settings):
     # get correct settings
     settings = return_settings.copy()
@@ -71,3 +77,18 @@ def test_wrong_color(return_settings):
 
     with pytest.raises(ValueError):
         Settings(**settings)
+
+
+### Features Tests ###
+def test_correct_feature(return_feature):
+    feature = return_feature.copy()
+    FeatureSchema(**feature)
+
+
+### Features Tests ###
+def test_incorrect_type(return_feature):
+    feature = return_feature.copy()
+    feature["type"] = "footype"
+
+    with pytest.raises(ValueError):
+        FeatureSchema(**feature)

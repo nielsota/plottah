@@ -8,11 +8,13 @@ features:
     bins: 
           - 0
           - 1
-          - 5
+          - 5 
           - 10
           - 100
   - name: LN_LEXISNEXIS_SBFE_SCORE_CURRENT_N
   - name: T_TOTAL_TRX_NON_FUEL_PROPORTION_1M_N
+  - name: LN_LEXISNEXIS_THIN_FILE_FLAG_B
+    type: categorical
   #- name: D_STROOPWAFFELS_AVG_6M_N 
 
 target: FLAG_60_DPD_366_DAYS

@@ -10,6 +10,36 @@ from plottah.utils import get_bins, get_min_max_adj, get_labels_from_bins
 
 
 @dataclass
+class CategoricalBinner:
+    _labels: list = field(default_factory=None)
+
+    def get_labels(self):
+        return self._labels.copy()
+
+    def add_bins(self, df: pd.DataFrame, feature_col: str):
+        # Extract unique values
+        unique_vals = df[feature_col].sort_values().unique()
+
+        # Convert sorted elements to int
+        mapping = pd.factorize(unique_vals, na_sentinel=len(unique_vals))
+
+        # Create mapping
+        mapping_values = list(mapping[0])
+        mapping_keys = list(mapping[1])
+
+        # Create mapping dictionary
+        mapping_dict = dict(zip(mapping_keys, mapping_values))
+
+        # Apply mapping to column
+        df = df.assign(bins=df[feature_col].map(mapping_dict))
+
+        # Set labels for plotting
+        self._labels = mapping_keys
+
+        return df
+
+
+@dataclass
 class BinEventRatePlot(PlotProtocol):
     # set the colorway
     colors: PlotColors = field(default_factory=lambda: PlotColors())
@@ -23,9 +53,9 @@ class BinEventRatePlot(PlotProtocol):
 
     def do_math(
         self,
-        df,
-        feature_col,
-        target_col,
+        df: pd.DataFrame,
+        feature_col: str,
+        target_col: str,
         fillna: bool = False,
         method: str = "quantile",
     ):
