@@ -28,8 +28,9 @@ def validate_color_string(color_string):
 
 class FeatureSchema(BaseModel):
     name: str
-    bins: Optional[list[int]]
     type: Optional[str]
+    n_bins: Optional[int] = 10
+    bins: Optional[list[int]] = None
 
     # needs to be hashable: https://stackoverflow.com/questions/63721614/unhashable-type-in-fastapi-request
     class Config:
@@ -42,6 +43,13 @@ class FeatureSchema(BaseModel):
                 f'Type for {values["name"]} must be in {ALLOWED_TYPES}, you passed type: {v}'
             )
         return v
+
+    @validator("bins")
+    def validate_bins_and_nbins(cls, bins, values):
+        if len(bins) != values["n_bins"]:
+            values["n_bins"] = len(bins)
+            print(f'setting n_bins for {values["name"]} to {len(bins)} based on bins')
+        return bins
 
 
 class Settings(BaseModel):

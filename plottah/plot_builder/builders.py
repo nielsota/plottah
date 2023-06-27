@@ -43,7 +43,6 @@ def build_univariate_plot(
     )
 
     plot = PlotHandler(feature_col, target, specs)
-
     plot.build(df, feature_col, target, roc_plot, dist_plot, event_plot, show_fig=False)
 
     if show_plot:
@@ -57,12 +56,12 @@ def build_univariate_plots(
     features: list,
     target: str,
     feature_types: dict,
+    n_bins: dict = None,
+    bins: dict = None,
     save_directory: pathlib.Path() = None,
     colors: PlotColors = PlotColors(),
     show_plot: bool = False,
     hoverinfo="all",
-    n_bins: int = 10,
-    bins: dict = None,
 ) -> Dict[str, PlotHandler]:
     """
     function that generates standard univariate plots
@@ -99,7 +98,7 @@ def build_univariate_plots(
             colors=colors,
             show_plot=show_plot,
             hoverinfo=hoverinfo,
-            n_bins=n_bins,
+            n_bins=n_bins[feature],
             bins=bins[feature],
         )
 

@@ -8,6 +8,10 @@ from .PlotProtocol import PlotProtocol
 from plottah.colors import PlotColors
 from plottah.utils import get_bins, get_min_max_adj, get_labels_from_bins
 
+import logging
+
+MIN_N_UNIQUE = 25
+
 
 @dataclass
 class CategoricalBinner:
@@ -181,9 +185,17 @@ class BinEventRatePlot(PlotProtocol):
 
         if self.feature_type == "categorical":
             print("using categorical binner")
+            if self.df[self.feature_col].nunique() > self.n_bins:
+                raise ValueError(
+                    f"Too many unique values for feature: {self.feature_col} ({self.df[self.feature_col].nunique()}) to only use {self.n_bins} bins. Increase n_bins to at least {self.df[self.feature_col].nunique()}!"
+                )
             binner = CategoricalBinner()
             self.df, self.labels = binner.add_bins(self.df, self.feature_col)
         else:
+            if self.df[self.feature_col].nunique() < MIN_N_UNIQUE:
+                logging.warning(
+                    f"{self.feature_col} only has {self.df[self.feature_col].nunique()} distinct values, consider switching feature type for {self.feature_col} to categorical (currenly {self.feature_type})"
+                )
             binner = StandardBinner()
             self.df, self.labels = binner.add_bins(
                 self.df, self.feature_col, self.n_bins, self.bins, method=method

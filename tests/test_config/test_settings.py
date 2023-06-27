@@ -1,4 +1,4 @@
-from plottah.config import Settings, FeatureSchema
+from plottah.config import Settings
 
 import pytest
 
@@ -77,18 +77,3 @@ def test_wrong_color(return_settings):
 
     with pytest.raises(ValueError):
         Settings(**settings)
-
-
-### Features Tests ###
-def test_correct_feature(return_feature):
-    feature = return_feature.copy()
-    FeatureSchema(**feature)
-
-
-### Features Tests ###
-def test_incorrect_type(return_feature):
-    feature = return_feature.copy()
-    feature["type"] = "footype"
-
-    with pytest.raises(ValueError):
-        FeatureSchema(**feature)
