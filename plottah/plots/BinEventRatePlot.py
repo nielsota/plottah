@@ -183,6 +183,7 @@ class BinEventRatePlot(PlotProtocol):
         n_unique_feat_vals = df[feature_col].nunique()
         self.n_bins = np.minimum(n_unique_feat_vals, self.n_bins)
 
+        # add bins column using strategy depending on feature type
         if self.feature_type == "categorical":
             print("using categorical binner")
             if self.df[self.feature_col].nunique() > self.n_bins:
