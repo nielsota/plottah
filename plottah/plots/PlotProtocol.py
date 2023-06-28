@@ -7,6 +7,34 @@ import plotly.graph_objects as go
 class PlotProtocol(Protocol):
     """
     Defines an interface for all the plots that can be combined in the OtaPlotter Object
+
+    (Cohesion) Plot classes are responsible for:
+
+        (do_math)
+        - Accepting a dataframe, a feature and target column and doing all the math required to generate a plot.
+          If a lot of code is required here, advice is to seperate out into _function_name functions
+
+        (get_traces)
+        -  Returning a list of dictionaries, with one entry per trace to plot where the keys are
+            1. trace: the trace to add
+            2. secondary_y: whether the trace is on the secondary y-axes
+
+        (get_x_axes_layout)
+        -  Return a dictionary with x-axes settings
+
+        (get_y_axes_layout)
+        -  Return a dictionary with y-axes settings
+
+        (get_annotation)
+        -  Return a list of dictionaries containing settings for annotations
+
+        (get_secondary_y_axis_title)
+        - Set the secondary y-axis title (only required if secondary y-axis exists)
+
+        (show_plot)
+        - Function that creates figure and adds all elemets of Plot to figure, mainly for development/debugging
+          of individual classes
+
     """
 
     def do_math(self, df, feature_col, target_col, fillna: bool = False):
@@ -15,7 +43,7 @@ class PlotProtocol(Protocol):
         """
         ...
 
-    def get_traces(self) -> List:
+    def get_traces(self) -> List[dict]:
         ...
 
     def get_x_axes_layout(self, row: int, col: int):
