@@ -197,7 +197,7 @@ class BinEventRatePlot(PlotProtocol):
         n_unique_feat_vals = df[feature_col].nunique()
         if n_unique_feat_vals < self.n_bins:
             logging.warning(
-                f"{self.feature_col} only has {n_unique_feat_vals} distinct values, decreasing n_bins from {n_unique_feat_vals} to {self.n_bins} "
+                f"{self.feature_col} only has {n_unique_feat_vals} distinct values, decreasing n_bins from {self.n_bins} to {n_unique_feat_vals} "
             )
         self.n_bins = np.minimum(n_unique_feat_vals, self.n_bins)
 

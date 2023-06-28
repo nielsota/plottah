@@ -4,6 +4,8 @@ from typing import Dict
 
 import pathlib
 import pandas as pd
+from pptx import Presentation
+
 
 from plottah.plots import DistPlot, RocCurvePlot, BinEventRatePlot
 
@@ -109,3 +111,8 @@ def build_univariate_plots(
         figs[feature] = fig
 
     return figs
+
+
+def build_powerpoint(figs: list):
+    prs = Presentation()
+    prs.save("test.pptx")

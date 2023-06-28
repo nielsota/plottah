@@ -1,4 +1,4 @@
-from plottah.plot_builder import build_univariate_plots
+from plottah.plot_builder import build_univariate_plots, build_powerpoint
 from plottah.config import settings
 from plottah.colors import PlotColors
 
@@ -44,7 +44,7 @@ def main():
         for feature_schema in settings.features
     }
 
-    build_univariate_plots(
+    figs = build_univariate_plots(
         df=pd.read_csv(settings.file_path),
         features=features,
         target=settings.target,
@@ -54,6 +54,8 @@ def main():
         bins=bins,
         n_bins=n_bins,
     )
+
+    build_powerpoint(figs)
 
 
 if __name__ == "__main__":
