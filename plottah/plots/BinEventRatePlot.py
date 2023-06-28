@@ -15,6 +15,13 @@ MIN_N_UNIQUE = 25
 
 @dataclass
 class CategoricalBinner:
+    """
+    seperated out binning to increase cohesion -> only responsible for
+        1. Adding bins to dataframe given as input
+        2. Returning labels based on bins
+
+    """
+
     _labels: list = field(default_factory=lambda: None)
 
     def get_labels(self):
@@ -47,6 +54,13 @@ class CategoricalBinner:
 
 @dataclass
 class StandardBinner:
+    """
+    seperated out binning to increase cohesion -> only responsible for
+        1. Adding bins to dataframe given as input
+        2. Returning labels based on bins
+
+    """
+
     _labels: list = field(default_factory=lambda: None)
 
     def get_labels(self):
@@ -181,6 +195,10 @@ class BinEventRatePlot(PlotProtocol):
         # Adjust n_bins if less unique values exist
         self.n_bins = self.n_bins if self.bins is None else len(self.bins)
         n_unique_feat_vals = df[feature_col].nunique()
+        if n_unique_feat_vals < self.n_bins:
+            logging.warning(
+                f"{self.feature_col} only has {n_unique_feat_vals} distinct values, decreasing n_bins from {n_unique_feat_vals} to {self.n_bins} "
+            )
         self.n_bins = np.minimum(n_unique_feat_vals, self.n_bins)
 
         # add bins column using strategy depending on feature type

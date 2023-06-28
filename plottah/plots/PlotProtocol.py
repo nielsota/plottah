@@ -46,16 +46,16 @@ class PlotProtocol(Protocol):
     def get_traces(self) -> List[dict]:
         ...
 
-    def get_x_axes_layout(self, row: int, col: int):
+    def get_x_axes_layout(self, row: int, col: int) -> dict:
         ...
 
-    def get_y_axes_layout(self, row: int, col: int):
+    def get_y_axes_layout(self, row: int, col: int) -> dict:
         ...
 
     def get_annotations(self, ref: str) -> List[dict]:
         ...
 
-    def get_secondary_y_axis_title(self):
+    def get_secondary_y_axis_title(self) -> str | None:
         return None
 
     def show_plot(self, show_figure: bool = True) -> go.Figure:
