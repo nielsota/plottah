@@ -13,6 +13,8 @@ Clone the repo, give name plotting_analyis
 ```shell
 git clone git@github.com:nielsota/plottah.git plotting_analysis
 ```
+
+CD into the directory
 ```shell
 cd plotting_analysis
 ```
@@ -53,5 +55,5 @@ Next, update the config.yaml how you see fit, and then to generate the images ru
 python -m plottah
 ```
 
-See notebooks for examples on how to run code inline
+See notebooks for examples on how to run code inline during development
 
