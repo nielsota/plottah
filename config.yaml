@@ -1,5 +1,6 @@
 file_path : ./data/example_data/test_sample.csv
-output_path: ./data/images
+images_output_path: ./data/images
+powerpoint_output_path: ./data/powerpoints/test.pptx
 
 features:
   - name: A_TENURE_MONTHS_N
@@ -17,7 +18,7 @@ features:
   - name: LN_LEXISNEXIS_THIN_FILE_FLAG_B
     type: categorical
     #type: float
-    #n_bins: 1
+    n_bins: 5
   #- name: D_STROOPWAFFELS_AVG_6M_N 
 
 target: FLAG_60_DPD_366_DAYS

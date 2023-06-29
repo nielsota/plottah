@@ -54,7 +54,8 @@ class FeatureSchema(BaseModel):
 
 class Settings(BaseModel):
     file_path: Path
-    output_path: Path
+    images_output_path: Path
+    powerpoint_output_path: Path
     features: list[FeatureSchema]
     target: str
     primary_color: str
@@ -62,7 +63,7 @@ class Settings(BaseModel):
     tertiary_color: str
     grey_tint_color: str
 
-    @validator("file_path", "output_path", pre=True)
+    @validator("file_path", "images_output_path", pre=True)
     def path_must_exist(cls, v):
         """
         validates path specified in config. the path/file must exist before the code can execute the ensure valid reading and writing locations exist
@@ -74,6 +75,21 @@ class Settings(BaseModel):
         if not v.exists():
             raise ValueError(
                 f"Directory: {v} does not exist \n Please ensure the config.yaml contains a valid directory"
+            )
+        return v
+
+    @validator("powerpoint_output_path")
+    def parent_dir_must_exist(cls, v):
+        """
+        validates path specified in config. the path/file must exist before the code can execute the ensure valid reading and writing locations exist
+        """
+
+        if not isinstance(v, Path):
+            v = Path(v)
+
+        if not v.parent.exists():
+            raise ValueError(
+                f"Directory: {v.parent} does not exist \n Please ensure the config.yaml contains a valid directory"
             )
         return v
 

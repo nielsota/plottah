@@ -4,6 +4,9 @@ from typing import Dict
 
 import pathlib
 import pandas as pd
+from pptx import Presentation
+from pptx.util import Inches, Pt
+
 
 from plottah.plots import DistPlot, RocCurvePlot, BinEventRatePlot
 
@@ -85,6 +88,7 @@ def build_univariate_plots(
 
     # Run loop
     figs = {}
+    save_locs = []
     for i, feature in enumerate(features):
         print(f"[{i+1}/{len(features)}] Starting univariate analysis for: {feature}")
         if feature not in df.columns:
@@ -103,9 +107,41 @@ def build_univariate_plots(
         )
 
         if save_directory is not None:
-            fig.save_fig(save_directory)
+            save_loc = fig.save_fig(save_directory)
             print(f"[{i+1}/{len(features)}] Saving univariate anaylsis for {feature}")
+            save_locs.append(save_loc)
 
         figs[feature] = fig
 
-    return figs
+    return figs, save_locs
+
+
+def build_powerpoint(
+    fig_locs: list,
+    feature_names: list,
+    save_path: pathlib.Path(),
+):
+    pres = Presentation()
+
+    for i, fig_loc in enumerate(fig_locs):
+        s_register = pres.slide_layouts[1]
+        s = pres.slides.add_slide(s_register)
+
+        pic = s.shapes.add_picture(
+            str(pathlib.Path(fig_loc).resolve()),
+            Inches(0.5),
+            Inches(1.75),
+            width=Inches(7),
+            height=Inches(5),
+        )
+        pic.left = int((pres.slide_width - pic.width) / 2)
+
+        title = s.shapes.title
+        title.text = f"Univariate analysis for {feature_names[i]}"
+
+        title_para = s.shapes.title.text_frame.paragraphs[0]
+        title_para.font.size = Pt(24)
+
+    pres.save(
+        "/Users/otaniels/Library/CloudStorage/OneDrive-TheBostonConsultingGroup,Inc/Documents/NielsOta/Code/univariate_plotter/data/powerpoints/test.pptx"
+    )
