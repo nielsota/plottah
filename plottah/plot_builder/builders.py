@@ -28,27 +28,45 @@ def build_univariate_plot(
 
     Returns
     """
+    if feature_type == "categorical":
+        event_plot = BinEventRatePlot(
+            hoverinfo=hoverinfo,
+            colors=colors,
+            n_bins=n_bins,
+            bins=bins,
+            feature_type=feature_type,
+        )
+        event_plot.do_math(df, feature_col, target)
 
-    roc_plot = RocCurvePlot(hoverinfo=hoverinfo, colors=colors)
-    dist_plot = DistPlot(hoverinfo=hoverinfo, colors=colors)
-    event_plot = BinEventRatePlot(
-        hoverinfo=hoverinfo,
-        colors=colors,
-        n_bins=n_bins,
-        bins=bins,
-        feature_type=feature_type,
-    )
+        specs = (
+            [[{}, {}], [{"colspan": 2, "secondary_y": True}, None]]
+            if specs is None
+            else specs
+        )
 
-    specs = (
-        [[{}, {}], [{"colspan": 2, "secondary_y": True}, None]]
-        if specs is None
-        else specs
-    )
+        plot = PlotHandler(feature_col, target, specs)
+        plot.build_subplot(event_plot, 2, 1)
+    else:
+        roc_plot = RocCurvePlot(hoverinfo=hoverinfo, colors=colors)
+        dist_plot = DistPlot(hoverinfo=hoverinfo, colors=colors)
+        event_plot = BinEventRatePlot(
+            hoverinfo=hoverinfo,
+            colors=colors,
+            n_bins=n_bins,
+            bins=bins,
+            feature_type=feature_type,
+        )
 
-    plot = PlotHandler(feature_col, target, specs)
-    plot.build(
-        df, feature_col, target, roc_plot, dist_plot, event_plot, show_fig=show_plot
-    )
+        specs = (
+            [[{}, {}], [{"colspan": 2, "secondary_y": True}, None]]
+            if specs is None
+            else specs
+        )
+
+        plot = PlotHandler(feature_col, target, specs)
+        plot.build(
+            df, feature_col, target, roc_plot, dist_plot, event_plot, show_fig=show_plot
+        )
 
     if show_plot:
         plot.show()
@@ -66,7 +84,7 @@ def build_univariate_plots(
     save_directory: pathlib.Path() = None,
     colors: PlotColors = PlotColors(),
     show_plot: bool = False,
-    hoverinfo="all",
+    hoverinfo="none",
 ) -> Dict[str, PlotHandler]:
     """
     function that generates standard univariate plots
@@ -87,6 +105,12 @@ def build_univariate_plots(
     # create mapping from bins to none if not passed as argument
     if bins is None:
         bins = {feature: None for feature in features}
+
+    if n_bins is None:
+        n_bins = {feature: 10 for feature in features}
+
+    if feature_types is None:
+        feature_types = {feature: "float" for feature in features}
 
     # Run loop
     figs = {}

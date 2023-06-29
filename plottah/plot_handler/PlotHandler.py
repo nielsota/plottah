@@ -110,7 +110,7 @@ class PlotHandler:
             height=800,
             legend=dict(
                 # the below if through experimentation
-                x=1.1,
+                x=1.30,
                 y=0.36 + (1 - self.legend_xref) * 0.57,
                 xanchor="right",
                 yanchor="bottom",

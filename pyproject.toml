@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "plottah"
-version = "0.1.14"
+version = "0.1.16"
 description = ""
 authors = ["Niels Ota"]
 readme = "README.md"
