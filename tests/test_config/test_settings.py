@@ -7,7 +7,8 @@ import pytest
 def return_settings():
     return {
         "file_path": "./data/example_data/test_sample.csv",
-        "output_path": "./data/images",
+        "images_output_path": "./data/images",
+        "powerpoint_output_path": "./data/images",
         "features": [
             {"name": "A_TENURE_MONTHS_N"},
             {"name": "T_PPG_AVG_6M_N"},

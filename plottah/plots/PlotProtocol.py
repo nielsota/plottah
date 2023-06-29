@@ -55,7 +55,7 @@ class PlotProtocol(Protocol):
     def get_annotations(self, ref: str) -> List[dict]:
         ...
 
-    def get_secondary_y_axis_title(self) -> str | None:
+    def get_secondary_y_axis_title(self):
         return None
 
     def show_plot(self, show_figure: bool = True) -> go.Figure:

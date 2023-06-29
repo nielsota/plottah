@@ -10,7 +10,8 @@ import pandas as pd
 def return_settings():
     return {
         "file_path": "./data/example_data/test_sample.csv",
-        "output_path": "./data/images",
+        "images_output_path": "./data/images",
+        "powerpoint_output_path": "./data/powerpoints",
         "features": [
             {"name": "A_TENURE_MONTHS_N"},
             {"name": "T_PPG_AVG_6M_N", "n_bins": 4},
@@ -32,7 +33,7 @@ def test_main(return_settings):
 
     # settings will not accept None for output path, but build_univariate_plots will. When passed None to build_univariate_plots, result is that output is not saved
     settings = Settings(**config)
-    settings.output_path = None
+    settings.images_output_path = None
 
     # set color palette to use
     color_palette = PlotColors(
@@ -85,7 +86,7 @@ def test_build_univariate_plot(return_settings):
 
     # settings will not accept None for output path, but build_univariate_plots will. When passed None to build_univariate_plots, result is that output is not saved
     settings = Settings(**config)
-    settings.output_path = None
+    settings.images_output_path = None
 
     # set color palette to use
     color_palette = PlotColors(
