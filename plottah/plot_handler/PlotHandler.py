@@ -157,13 +157,16 @@ class PlotHandler:
             self.fig.update_yaxes(**subplot.get_y_axes_layout(row, col))
 
         # update secondary y_axis if applicable
-        logging.info(f"Building secondary y-axes title for {self.feature_col}")
+
         if subplot.get_secondary_y_axis_title() is not None:
+            logging.info(f"Building secondary y-axes title for {self.feature_col}")
             # name of axis contained in self.yaxes on index (row - 1, col - 1) is the primary axes, plotly will store the secondary yaxis one further; i.e. stored at index (row - 1 , col)
             secondary_yaxis = self.yaxes[row - 1][col]
+            logging.info(f"Got secondary y-axes title for {self.feature_col}")
             self.fig.layout[
                 secondary_yaxis
             ].title.text = subplot.get_secondary_y_axis_title()
+            logging.info(f"Got layout y-axes title for {self.feature_col}")
 
     def build(
         self,
@@ -208,6 +211,7 @@ class PlotHandler:
         self.build_subplot(topright, 1, 2)
         logging.info("Building bottom subplot")
         self.build_subplot(bottom, 2, 1)
+        logging.info("Finished building subplots")
 
         if show_fig:
             self.show()

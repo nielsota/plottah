@@ -22,18 +22,22 @@ cd plotting_analysis
 Create a virtual environment by running:
 
 ```shell
-python -m venv .venv
+python -m venv venv
 ```
 
 The virtual environment should be activated every time you start a new shell session before running subsequent commands:
 
 > On Linux/MacOS:
 > ```shell
-> source .venv/bin/activate
+> source venv/bin/activate
 > ```
-> On Windows:
+> On Windows (bash/cmd):
 > ```shell
-> .venv\Scripts\activate
+> venv/Scripts/activate
+> ```
+> On Windows (ps):
+> ```shell
+> venv\Scripts\activate
 > ```
 Make sure you have the latest pip version
 ```shell

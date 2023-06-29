@@ -17,7 +17,7 @@ def build_univariate_plot(
     target: str,
     feature_type: str = "float",
     colors: PlotColors = PlotColors(),
-    show_plot: bool = True,
+    show_plot: bool = False,
     hoverinfo="all",
     n_bins: int = 10,
     bins: list = None,
@@ -46,7 +46,9 @@ def build_univariate_plot(
     )
 
     plot = PlotHandler(feature_col, target, specs)
-    plot.build(df, feature_col, target, roc_plot, dist_plot, event_plot, show_fig=False)
+    plot.build(
+        df, feature_col, target, roc_plot, dist_plot, event_plot, show_fig=show_plot
+    )
 
     if show_plot:
         plot.show()
