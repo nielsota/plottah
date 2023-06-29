@@ -9,6 +9,14 @@
 
 ### Development environment
 
+Clone the repo, give name plotting_analyis
+```shell
+git clone git@github.com:nielsota/plottah.git plotting_analysis
+```
+```shell
+cd plotting_analysis
+```
+
 Create a virtual environment by running:
 
 ```shell
@@ -25,6 +33,10 @@ The virtual environment should be activated every time you start a new shell ses
 > ```shell
 > .venv\Scripts\activate.bat
 > ```
+Make sure you have the latest pip version
+```shell
+python -m pip install --upgrade pip
+```
 
 Then install the packages listed in the requirements.txt
 ```shell

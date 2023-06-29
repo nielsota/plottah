@@ -123,8 +123,9 @@ def build_powerpoint(
 ):
     pres = Presentation()
 
+    print(len(pres.slide_layouts))
     for i, fig_loc in enumerate(fig_locs):
-        s_register = pres.slide_layouts[1]
+        s_register = pres.slide_layouts[7]
         s = pres.slides.add_slide(s_register)
 
         pic = s.shapes.add_picture(
@@ -137,11 +138,8 @@ def build_powerpoint(
         pic.left = int((pres.slide_width - pic.width) / 2)
 
         title = s.shapes.title
-        title.text = f"Univariate analysis for {feature_names[i]}"
-
+        title.text = f"{i} Univariate analysis for {(feature_names)[i]}"
         title_para = s.shapes.title.text_frame.paragraphs[0]
         title_para.font.size = Pt(24)
 
-    pres.save(
-        "/Users/otaniels/Library/CloudStorage/OneDrive-TheBostonConsultingGroup,Inc/Documents/NielsOta/Code/univariate_plotter/data/powerpoints/test.pptx"
-    )
+    pres.save(save_path)

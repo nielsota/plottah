@@ -6,6 +6,7 @@ pylint
 pydantic
 pydantic[dotenv]
 pyyaml
+setuptools
 
 # plotting
 plotly
@@ -17,3 +18,4 @@ tqdm
 scikit-learn
 scipy
 kaleido
+python-pptx

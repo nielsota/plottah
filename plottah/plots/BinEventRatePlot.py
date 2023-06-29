@@ -203,7 +203,7 @@ class BinEventRatePlot(PlotProtocol):
 
         # add bins column using strategy depending on feature type
         if self.feature_type == "categorical":
-            print("using categorical binner")
+            logging.info("using categorical binner")
             if self.df[self.feature_col].nunique() > self.n_bins:
                 raise ValueError(
                     f"Too many unique values for feature: {self.feature_col} ({self.df[self.feature_col].nunique()}) to only use {self.n_bins} bins. Increase n_bins to at least {self.df[self.feature_col].nunique()}!"
@@ -211,6 +211,7 @@ class BinEventRatePlot(PlotProtocol):
             binner = CategoricalBinner()
             self.df, self.labels = binner.add_bins(self.df, self.feature_col)
         else:
+            logging.info("using standard binner")
             if self.df[self.feature_col].nunique() < MIN_N_UNIQUE:
                 logging.warning(
                     f"{self.feature_col} only has {self.df[self.feature_col].nunique()} distinct values, consider switching feature type for {self.feature_col} to categorical (currenly {self.feature_type})"
