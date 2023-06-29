@@ -33,7 +33,7 @@ The virtual environment should be activated every time you start a new shell ses
 > ```
 > On Windows:
 > ```shell
-> .venv\Scripts\activate.bat
+> .venv\Scripts\activate
 > ```
 Make sure you have the latest pip version
 ```shell
