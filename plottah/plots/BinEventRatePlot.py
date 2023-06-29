@@ -98,6 +98,7 @@ class StandardBinner:
         # set first and last value back to min and max before imputing
         bins[0] = min_val
         bins[n_bins - 1] = max_val
+        logging.info(f"using bins: {bins}")
 
         # update number of bins
         assert n_bins == len(bins)
@@ -119,6 +120,7 @@ class StandardBinner:
 
         # Create plot labels: [(4, 6), (6, 10), ...]
         self._labels = get_labels_from_bins(bins)
+        logging.info(f"using labels: {self._labels}")
 
         ## CLIPPING
 
@@ -182,6 +184,8 @@ class BinEventRatePlot(PlotProtocol):
         3. get the max density and feature value after imputing
         """
 
+        logging.info("Started math for BinEventRatePlot for {feature_col}")
+
         # set feature and target column names
         self.feature_col = feature_col
         self.target_col = target_col
@@ -211,7 +215,7 @@ class BinEventRatePlot(PlotProtocol):
             binner = CategoricalBinner()
             self.df, self.labels = binner.add_bins(self.df, self.feature_col)
         else:
-            logging.info("using standard binner")
+            logging.info("Using standard binner")
             if self.df[self.feature_col].nunique() < MIN_N_UNIQUE:
                 logging.warning(
                     f"{self.feature_col} only has {self.df[self.feature_col].nunique()} distinct values, consider switching feature type for {self.feature_col} to categorical (currenly {self.feature_type})"

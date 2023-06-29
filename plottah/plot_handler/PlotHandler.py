@@ -4,6 +4,7 @@ from plottah.plots import PlotProtocol
 import pathlib
 
 import pandas as pd
+import logging
 
 
 @dataclass
@@ -130,6 +131,7 @@ class PlotHandler:
 
         """
         # add traces
+        logging.info(f"Building traces for {self.feature_col}")
         for trace_dict in subplot.get_traces():
             self.fig.add_trace(
                 trace_dict["trace"],
@@ -139,19 +141,23 @@ class PlotHandler:
             )
 
         # add annotations
+        logging.info(f"Building annotations for {self.feature_col}")
         for annotation in subplot.get_annotations(
             self.xrefs[row - 1][col - 1], self.yrefs[row - 1][col - 1]
         ):
             self.fig.add_annotation(**annotation)
 
         # update axes layout if specifed
+        logging.info(f"Building x axes for {self.feature_col}")
         if subplot.get_x_axes_layout(row, col) is not None:
             self.fig.update_xaxes(**subplot.get_x_axes_layout(row, col))
 
+        logging.info(f"Building y axes for {self.feature_col}")
         if subplot.get_y_axes_layout(row, col) is not None:
             self.fig.update_yaxes(**subplot.get_y_axes_layout(row, col))
 
         # update secondary y_axis if applicable
+        logging.info(f"Building secondary y-axes title for {self.feature_col}")
         if subplot.get_secondary_y_axis_title() is not None:
             # name of axis contained in self.yaxes on index (row - 1, col - 1) is the primary axes, plotly will store the secondary yaxis one further; i.e. stored at index (row - 1 , col)
             secondary_yaxis = self.yaxes[row - 1][col]
@@ -196,8 +202,11 @@ class PlotHandler:
         bottom.do_math(df, feature_col, target)
 
         # build each of the subplots
+        logging.info("Building topleft subplot")
         self.build_subplot(topleft, 1, 1)
+        logging.info("Building topright subplot")
         self.build_subplot(topright, 1, 2)
+        logging.info("Building bottom subplot")
         self.build_subplot(bottom, 2, 1)
 
         if show_fig:

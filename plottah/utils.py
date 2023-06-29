@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 
 from typing import Tuple
+import logging
 
 
 def get_n_quantile_bins(
@@ -140,8 +141,9 @@ def get_labels_from_bins(bins: list) -> list:
     example: [0, 1, 2] -> ['(0.00, 1.00]', '(1.00, 2.00]']
     """
 
-    precision = 2
+    precision = 0
     while len(bins) > len(np.unique(np.round(bins, precision))):
+        logging.info(f"precision currently: {precision}")
         precision += 1
 
     labels = [
