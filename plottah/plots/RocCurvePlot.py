@@ -7,6 +7,7 @@ from plottah.plots.PlotProtocol import PlotProtocol
 from plottah.utils import remove_or_impute_nan_infs
 from plottah.colors import PlotColors
 
+import logging 
 
 @dataclass
 class RocCurvePlot(PlotProtocol):
@@ -23,6 +24,8 @@ class RocCurvePlot(PlotProtocol):
         1. imputes/removes missing values
         2. calculated fpr, tpr and AUC
         """
+
+        logging.info("Started math for RocCurvePlot")
 
         # 1. impute/remove missing values
         self.df_imputed = remove_or_impute_nan_infs(df.copy(), feature_col, target_col)

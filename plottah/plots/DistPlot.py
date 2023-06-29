@@ -6,6 +6,8 @@ from .PlotProtocol import PlotProtocol
 from plottah.utils import remove_or_impute_nan_infs
 from plottah.colors import PlotColors
 
+import logging
+
 
 @dataclass
 class DistPlot(PlotProtocol):
@@ -23,6 +25,8 @@ class DistPlot(PlotProtocol):
         2. extract traces from the distplot function from plotly
         3. get the max density and feature value after imputing
         """
+
+        logging.info("Started math for DistPlot")
 
         # 1. impute/remove missing values
         self.df_imputed = remove_or_impute_nan_infs(df.copy(), feature_col, target_col)

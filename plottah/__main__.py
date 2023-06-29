@@ -28,7 +28,7 @@ def main():
     build_pp = args.build_powerpoint
 
     # set logging level
-    logging.basicConfig(level=logging.WARNING)
+    logging.basicConfig(level=logging.INFO)
 
     # set color palette to use
     color_palette = PlotColors(
