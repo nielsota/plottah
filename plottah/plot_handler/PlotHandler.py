@@ -222,6 +222,8 @@ class PlotHandler:
         # save the image in the directory
         self.fig.write_image(directory / f"univariate_plot_{self.feature_col}.jpeg")
 
+        return str(directory / f"univariate_plot_{self.feature_col}.jpeg")
+
     def get_fig(self):
         """
         Return figure object

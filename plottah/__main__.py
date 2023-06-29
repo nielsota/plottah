@@ -5,6 +5,7 @@ from plottah.colors import PlotColors
 import pandas as pd
 
 import logging
+import pathlib
 
 
 def main():
@@ -44,18 +45,23 @@ def main():
         for feature_schema in settings.features
     }
 
-    figs = build_univariate_plots(
+    # build all the univariate plots
+    figs, fig_locs = build_univariate_plots(
         df=pd.read_csv(settings.file_path),
         features=features,
         target=settings.target,
         feature_types=feature_types,
-        save_directory=settings.output_path,
+        save_directory=settings.images_output_path,
         colors=color_palette,
         bins=bins,
         n_bins=n_bins,
     )
 
-    build_powerpoint(figs)
+    build_powerpoint(
+        fig_locs=fig_locs,
+        feature_names=features,
+        save_path=pathlib.Path("./data/powerpoints/test.pptx"),
+    )
 
 
 if __name__ == "__main__":
