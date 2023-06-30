@@ -106,8 +106,8 @@ class PlotHandler:
             ),
             margin=dict(t=40),
             title_x=0.5,
-            width=1000,
-            height=800,
+            width=500 * self.ncols,
+            height=400 * self.nrows,
             legend=dict(
                 # the below if through experimentation
                 x=1.30,

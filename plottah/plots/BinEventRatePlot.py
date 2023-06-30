@@ -112,7 +112,6 @@ class StandardBinner:
         logging.info(f"using bins: {bins}")
 
         # update number of bins
-        assert n_bins == len(bins)
 
         # Create bins (return None if binning is not successfull)
         try:
