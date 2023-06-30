@@ -54,8 +54,8 @@ class PlotHandler:
         ]
 
         # make these in init later
-        self.nrows = 2
-        self.ncols = 2
+        self.nrows = len(self.specs)
+        self.ncols = len(self.specs[0])
 
         counter = 1
         self.xrefs = [

@@ -39,13 +39,11 @@ def build_univariate_plot(
         event_plot.do_math(df, feature_col, target)
 
         specs = (
-            [[{}, {}], [{"colspan": 2, "secondary_y": True}, None]]
-            if specs is None
-            else specs
+            [[{"colspan": 2, "secondary_y": True}, None]] if specs is None else specs
         )
 
         plot = PlotHandler(feature_col, target, specs)
-        plot.build_subplot(event_plot, 2, 1)
+        plot.build_subplot(event_plot, 1, 1)
     else:
         roc_plot = RocCurvePlot(hoverinfo=hoverinfo, colors=colors)
         dist_plot = DistPlot(hoverinfo=hoverinfo, colors=colors)
@@ -64,8 +62,9 @@ def build_univariate_plot(
         )
 
         plot = PlotHandler(feature_col, target, specs)
+        # set show fig to false, show explicitly below
         plot.build(
-            df, feature_col, target, roc_plot, dist_plot, event_plot, show_fig=show_plot
+            df, feature_col, target, roc_plot, dist_plot, event_plot, show_fig=False
         )
 
     if show_plot:
@@ -108,6 +107,10 @@ def build_univariate_plots(
 
     if n_bins is None:
         n_bins = {feature: 10 for feature in features}
+    else:
+        for feature in features:
+            if feature not in n_bins.keys():
+                n_bins[feature] = 10
 
     if feature_types is None:
         feature_types = {feature: "float" for feature in features}

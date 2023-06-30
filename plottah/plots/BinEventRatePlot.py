@@ -78,6 +78,8 @@ class StandardBinner:
         min_val, max_val = get_min_max_adj(df, feature_col)
         min_val_adj, max_val_adj = get_min_max_adj(df, feature_col)
 
+        provided_bins = bins is not None
+
         ## BINNING
         bins = (
             bins
@@ -96,8 +98,17 @@ class StandardBinner:
         bins = list(bins)
 
         # set first and last value back to min and max before imputing
-        bins[0] = min_val
-        bins[n_bins - 1] = max_val
+        if (bins[0] != min_val) & provided_bins:
+            logging.warning(
+                f"For feature {feature_col} you provided custom bins, the smallest bin provided is {bins[0]} but minimum is {min_val}, so replacing {bins[0]} by {min_val}"
+            )
+            bins[0] = min_val
+
+        if (bins[n_bins - 1] != max_val) & provided_bins:
+            logging.warning(
+                f"For feature {feature_col} you provided custom bins, the largest bin is {bins[n_bins - 1] } but max is {max_val}, so replacing {bins[n_bins - 1]} by {max_val}"
+            )
+            bins[n_bins - 1] = max_val
         logging.info(f"using bins: {bins}")
 
         # update number of bins

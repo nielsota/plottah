@@ -10,6 +10,7 @@ import argparse
 from datetime import datetime
 
 parser = argparse.ArgumentParser(description="Run the univariate analyses workflow")
+logging.basicConfig(level=logging.WARN)
 
 
 def main():
@@ -25,26 +26,8 @@ def main():
         help="Specify whether you would like to automatically add figures to a powerpoint",
     )
 
-    parser.add_argument(
-        "-l",
-        "--logging",
-        nargs="?",
-        type=str,
-        default="debug",
-        choices=["debug", "info"],
-        help="Specify the logging level",
-    )
-
     args = parser.parse_args()
     build_pp = args.build_powerpoint
-    log_level = args.logging
-
-    if log_level == "info":
-        logging.basicConfig(level=logging.INFO)
-    else:
-        logging.basicConfig(level=logging.DEBUG)
-
-    logging.basicConfig(level=logging.WARNING)
 
     # set color palette to use
     color_palette = PlotColors(

@@ -125,6 +125,7 @@ class Settings(BaseModel):
                 raise ValueError(
                     f"Column: {feature} does not exist is dataframe \n Please ensure the config.yaml contains only valid columns"
                 )
+
         return v
 
     @validator("target")
