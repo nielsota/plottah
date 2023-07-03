@@ -109,6 +109,17 @@ class StandardBinner:
                 f"For feature {feature_col} you provided custom bins, the largest bin is {bins[n_bins - 1] } but max is {max_val}, so replacing {bins[n_bins - 1]} by {max_val}"
             )
             bins[n_bins - 1] = max_val
+
+        if (not all(i < bins[n_bins - 1] for i in bins[:-1])) & provided_bins:
+            logging.warning(
+                f"For feature {feature_col} you provided custom bins, the largest bin is {bins[n_bins - 1]} but other bins provided by you are larger, and since bins must increase monotonically, this will lead to errors. Please revise the bins.Please revise the bins. Currently (after replacing smallest and largest bin by min/max): {bins}"
+            )
+
+        if (not all(i > bins[0] for i in bins[1:])) & provided_bins:
+            logging.warning(
+                f"For feature {feature_col} you provided custom bins, the smallest bin is {bins[0]} but other bins provided by you are smaller, and since bins must increase monotonically, this will lead to errors. Please revise the bins. Currently (after replacing smallest and largest bin by min/max): {bins}"
+            )
+
         logging.info(f"using bins: {bins}")
 
         # update number of bins
@@ -126,7 +137,7 @@ class StandardBinner:
                 )
             )
         except Exception as e:
-            raise ValueError("{self.feature_col} cannot be binned")
+            raise ValueError(f"{self.feature_col} cannot be binned using bins: {bins}")
 
         # Create plot labels: [(4, 6), (6, 10), ...]
         self._labels = get_labels_from_bins(bins)

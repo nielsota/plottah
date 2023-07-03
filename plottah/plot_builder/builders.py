@@ -152,7 +152,6 @@ def build_powerpoint(
 ):
     pres = Presentation()
 
-    print(len(pres.slide_layouts))
     for i, fig_loc in enumerate(fig_locs):
         s_register = pres.slide_layouts[7]
         s = pres.slides.add_slide(s_register)
