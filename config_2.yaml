@@ -1,9 +1,13 @@
 file_path : ./data/example_data/bank-additional-full.csv
-output_path: ./data/images
+images_output_path: ./data/images
+powerpoint_output_path: ./data/powerpoints/test.pptx
 
 features:
   - name: euribor3m
-  - name: cons.price.idx
+  - name: marital
+    type: categorical
+  - name: education
+    type: categorical
 
 target: y1
 #target: D_STROOPWAFFELS_AVG_6M_N 

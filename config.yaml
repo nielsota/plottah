@@ -2,6 +2,8 @@ file_path : ./data/example_data/test_sample.csv
 images_output_path: ./data/images
 powerpoint_output_path: ./data/powerpoints/test.pptx
 
+
+# for each feature, you must specify at least the name.
 features:
   - name: A_TENURE_MONTHS_N
   - name: T_PPG_AVG_6M_N
