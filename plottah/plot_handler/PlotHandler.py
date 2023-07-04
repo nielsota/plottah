@@ -15,7 +15,9 @@ class PlotHandler:
     Args:
         feature_col: feature to analyze
         target_col: target column in dataframe
-        specs: figure layout
+        specs (Optional): figure layout
+        nan_count_specs (Optional):
+        plot_title (Optional): p
 
     """
 
@@ -24,7 +26,7 @@ class PlotHandler:
     specs: list = field(
         default_factory=lambda: [[{}, {}], [{"colspan": 2, "secondary_y": True}, None]]
     )
-    nan_count_specs: int = field(default_factory=lambda: 0)
+    plot_title: str = field(default_factory=lambda: None)
 
     def __post_init__(self):
         """
@@ -56,6 +58,13 @@ class PlotHandler:
         # make these in init later
         self.nrows = len(self.specs)
         self.ncols = len(self.specs[0])
+
+        # use default title if not provided
+        self.plot_title = (
+            f"{self.feature_col}: Roc Curve | Densities | Event Rates"
+            if self.plot_title is None
+            else self.plot_title
+        )
 
         counter = 1
         self.xrefs = [
@@ -101,7 +110,7 @@ class PlotHandler:
         self.fig.update_layout(
             showlegend=True,
             title=dict(
-                text=f"{self.feature_col}: Roc Curve | Densities | Event Rates",
+                text=self.plot_title,
                 font=dict(size=20),
             ),
             margin=dict(t=40),

@@ -10,7 +10,7 @@ class PlotProtocol(Protocol):
 
     (Cohesion) Plot classes are responsible for:
 
-        (do_math)
+        (do_math: RUN BEFORE PLOTTING)
         - Accepting a dataframe, a feature and target column and doing all the math required to generate a plot.
           If a lot of code is required here, advice is to seperate out into _function_name functions
 

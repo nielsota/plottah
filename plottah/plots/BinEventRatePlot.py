@@ -78,12 +78,13 @@ class StandardBinner:
         min_val, max_val = get_min_max_adj(df, feature_col)
         min_val_adj, max_val_adj = get_min_max_adj(df, feature_col)
 
+        # boolean checking if bins were provided
         provided_bins = bins is not None
 
         ## BINNING
         bins = (
             bins
-            if bins is not None
+            if provided_bins
             else get_bins(
                 df,
                 feature_col,
@@ -110,16 +111,17 @@ class StandardBinner:
             )
             bins[n_bins - 1] = max_val
 
+        # error if not all bins are smaller than the last bin after replacing last bin by max
         if (not all(i < bins[n_bins - 1] for i in bins[:-1])) & provided_bins:
             logging.warning(
                 f"For feature {feature_col} you provided custom bins, the largest bin is {bins[n_bins - 1]} but other bins provided by you are larger, and since bins must increase monotonically, this will lead to errors. Please revise the bins.Please revise the bins. Currently (after replacing smallest and largest bin by min/max): {bins}"
             )
 
+        # error if not all bins are larger than the first bin after replacing first bin by min
         if (not all(i > bins[0] for i in bins[1:])) & provided_bins:
             logging.warning(
                 f"For feature {feature_col} you provided custom bins, the smallest bin is {bins[0]} but other bins provided by you are smaller, and since bins must increase monotonically, this will lead to errors. Please revise the bins. Currently (after replacing smallest and largest bin by min/max): {bins}"
             )
-
         logging.info(f"using bins: {bins}")
 
         # update number of bins
@@ -194,7 +196,6 @@ class BinEventRatePlot(PlotProtocol):
         df: pd.DataFrame,
         feature_col: str,
         target_col: str,
-        fillna: bool = False,
         method: str = "quantile",
     ):
         """

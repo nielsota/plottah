@@ -28,7 +28,10 @@ def build_univariate_plot(
 
     Returns
     """
+
+    # if feature type is categorical, standard plot is only event rate plot
     if feature_type == "categorical":
+        # create plot and do math
         event_plot = BinEventRatePlot(
             hoverinfo=hoverinfo,
             colors=colors,
@@ -38,13 +41,21 @@ def build_univariate_plot(
         )
         event_plot.do_math(df, feature_col, target)
 
+        # need different specs, user can override but not required
         specs = (
             [[{"colspan": 2, "secondary_y": True}, None]] if specs is None else specs
         )
 
-        plot = PlotHandler(feature_col, target, specs)
+        # set up handler and build only subplot
+        plot = PlotHandler(
+            feature_col=feature_col,
+            target_col=target,
+            specs=specs,
+            plot_title=f"{feature_col}: Event Rates",
+        )
         plot.build_subplot(event_plot, 1, 1)
     else:
+        # build all 3 subplots for general plot
         roc_plot = RocCurvePlot(hoverinfo=hoverinfo, colors=colors)
         dist_plot = DistPlot(hoverinfo=hoverinfo, colors=colors)
         event_plot = BinEventRatePlot(
@@ -55,6 +66,7 @@ def build_univariate_plot(
             feature_type=feature_type,
         )
 
+        # need different specs, user can override but not required
         specs = (
             [[{}, {}], [{"colspan": 2, "secondary_y": True}, None]]
             if specs is None
@@ -64,9 +76,16 @@ def build_univariate_plot(
         plot = PlotHandler(feature_col, target, specs)
         # set show fig to false, show explicitly below
         plot.build(
-            df, feature_col, target, roc_plot, dist_plot, event_plot, show_fig=False
+            df=df,
+            feature_col=feature_col,
+            target=target,
+            topleft=roc_plot,
+            topright=dist_plot,
+            bottom=event_plot,
+            show_fig=False,
         )
 
+    # show the plot if show_plot set to true
     if show_plot:
         plot.show()
 
