@@ -206,7 +206,7 @@ class BinEventRatePlot(PlotProtocol):
         3. get the max density and feature value after imputing
         """
 
-        logging.info(f"Started math for BinEventRatePlot for {self.feature_col}")
+        logging.info(f"Started math for BinEventRatePlot for {feature_col}")
 
         # set feature and target column names
         self.feature_col = feature_col
