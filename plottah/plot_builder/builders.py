@@ -73,7 +73,9 @@ def build_univariate_plot(
             else specs
         )
 
-        plot = PlotHandler(feature_col, target, specs)
+        plot = PlotHandler(
+            feature_col=feature_col, target_col=target, specs=specs, plot_title=None
+        )
         # set show fig to false, show explicitly below
         plot.build(
             df=df,
@@ -124,13 +126,16 @@ def build_univariate_plots(
     if bins is None:
         bins = {feature: None for feature in features}
 
+    # create mapping from features to 10 if nbins not passed as argument
     if n_bins is None:
         n_bins = {feature: 10 for feature in features}
     else:
         for feature in features:
+            # user does not have to provide complete mapping
             if feature not in n_bins.keys():
                 n_bins[feature] = 10
 
+    # create mapping from features to float if type not provided
     if feature_types is None:
         feature_types = {feature: "float" for feature in features}
 
