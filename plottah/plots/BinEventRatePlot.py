@@ -47,7 +47,8 @@ class CategoricalBinner:
 
         # Set labels for plotting
         self._labels = [str(key) for key in mapping_keys]
-        self._labels[-1] = "NA"
+        if df["bins"].isna().sum() > 0:
+            self._labels.append("NA")
 
         return df, self._labels
 

@@ -1,10 +1,48 @@
 from plotly.subplots import make_subplots
 from dataclasses import dataclass, field
 from plottah.plots import PlotProtocol
+from typing import Protocol
 import pathlib
 
 import pandas as pd
 import logging
+
+
+# going after a factory design pattern here
+class PlotHandlerProtocol(Protocol):
+    """
+    A Protocol that lies out how handler should put together various PlotProtocol objects
+    """
+
+    def build_subplot(self):
+        """
+        function that - given a PlotProtocol object - add the plot data to the figure
+        """
+
+    def build(self):
+        """
+        function that - given a PlotProtocol object - add the plot data to the figure
+        """
+
+    def show(self):
+        """
+        show plot
+        """
+
+        ...
+
+    def save_fig(self):
+        """
+        save plot
+        """
+
+        ...
+
+    def get_fig(self):
+        """
+        Return figure object
+        """
+        ...
 
 
 @dataclass
@@ -97,7 +135,7 @@ class PlotHandler:
                     # self.yrefs[i][j] = f'y{counter}'
                     counter += 1
 
-        # make figure
+        # make figure - access Plotly internals here
         self.fig = make_subplots(
             rows=self.nrows,
             cols=self.ncols,
