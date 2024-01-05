@@ -6,6 +6,8 @@ from plottah.plots import DistPlot, RocCurvePlot, BinEventRatePlot
 from plottah.plot_handler import PlotHandler
 from plottah.colors import PlotColors
 
+#### Responsibility: put together specific Plots and Handlers into graphs
+
 
 def build_standard_numerical_univariate_plot(
     df,
@@ -67,7 +69,7 @@ def build_standard_categorical_univariate_plot(
     df,
     feature_col: str,
     target: str,
-    feature_type: str = "float",
+    feature_type: str = "categorical",
     colors: PlotColors = PlotColors(),
     show_plot: bool = False,
     hoverinfo="all",
