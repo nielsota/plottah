@@ -4,9 +4,9 @@
 ## Overview
 This package provides a set of core modules for creating, handling, and assembling visual plots. The three primary components of the package are:
 
-- Plots: Represent visual elements that can be displayed.
-- Handlers: Interact with an abstraction of a Plot, with varying configurations such as rows and columns.
-- Builders: Assemble Plots and Handlers to create comprehensive visual compositions.
+- **Plots**: Represent visual elements that can be displayed.
+- **Handlers**: Interact with an abstraction of a Plot, with varying configurations such as rows and columns.
+- **Builders**: Assemble Plots and Handlers to create comprehensive visual compositions.
 
 
 ## Design Choices
