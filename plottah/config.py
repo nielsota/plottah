@@ -16,6 +16,7 @@ def parse_from_yaml(path_to_yaml):
     """
     ability to parse config.yaml
     """
+    print(ROOT_DIR)
     with open(path_to_yaml) as f:
         config = yaml.safe_load(f)
 
@@ -147,7 +148,7 @@ class Settings(BaseModel):
         return v
 
 
-# config = parse_from_yaml(str(ROOT_DIR / "config_bank.yaml"))
+# create a config object containing all the validated settings
 config = parse_from_yaml(str(ROOT_DIR / "config.yaml"))
 settings = Settings(**config)
 

@@ -1,14 +1,13 @@
-import pathlib
-import pandas as pd
-
 from typing import Dict
+
+import pathlib
+
 from pptx import Presentation
 from pptx.util import Inches, Pt
 
-from plottah.plots import DistPlot, RocCurvePlot, BinEventRatePlot
 from plottah.plot_handler import PlotHandler
 from plottah.colors import PlotColors
-from plottah.plot_builder import PLOT_BUILDERS_DICT
+from plottah.plot_builder.specific_builders import PLOT_BUILDERS_DICT
 
 
 def build_univariate_plot(

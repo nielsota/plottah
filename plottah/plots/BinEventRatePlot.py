@@ -1,14 +1,14 @@
 from typing import Dict, List
+from dataclasses import dataclass, field
+import logging
+
 import plotly.graph_objects as go
 import numpy as np
 import pandas as pd
-from dataclasses import dataclass, field
 
-from .PlotProtocol import PlotProtocol
+from plottah.plots.PlotProtocol import PlotProtocol
 from plottah.colors import PlotColors
 from plottah.utils import get_bins, get_min_max_adj, get_labels_from_bins
-
-import logging
 
 MIN_N_UNIQUE = 25
 
@@ -248,8 +248,8 @@ class BinEventRatePlot(PlotProtocol):
                 self.df, self.feature_col, self.n_bins, self.bins, method=method
             )
 
-        # Group into bins and calculate required metrics
-        self.df_binned = self.df.groupby("bins").agg(
+        # Group into bins and calculate required metrics - observed = False doesn't impact anything but needed for warning
+        self.df_binned = self.df.groupby("bins", observed=False).agg(
             {feature_col: [len], target_col: ["mean"]}
         )
 
@@ -334,7 +334,7 @@ class BinEventRatePlot(PlotProtocol):
 
     def get_y_axes_layout(self, row, col):
         return dict(
-            title_text=f"Fraction of Observations",
+            title_text="Fraction of Observations",
             title_font={"size": 12},
             # range=[0, 1.2 * self.df_binned[f"{self.feature_col}_len"].max()],
             row=row,
