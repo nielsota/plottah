@@ -33,7 +33,7 @@ class CategoricalBinner:
 
         # Convert sorted elements to int
         # mapping = pd.factorize(unique_vals, na_sentinel=len(unique_vals))
-        mapping = pd.factorize(unique_vals, use_na_sentinel=False)
+        mapping = pd.factorize(unique_vals, na_sentinel=None)
 
         # Create mapping
         mapping_values = list(mapping[0])
