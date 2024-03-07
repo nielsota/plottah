@@ -1,12 +1,13 @@
 [tool.poetry]
 name = "plottah"
-version = "0.1.26"
+version = "1.0.1-alpha.1"
 description = ""
 authors = ["Niels Ota - BCG"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.8"
+numpy = "^1.17.3"
 pre-commit = "^3.3.3"
 pytest = "^7.3.2"
 jupyter = "^1.0.0"
@@ -14,8 +15,7 @@ pylint = "^2.17.4"
 pydantic = {extras = ["dotenv"], version = "^1.10.9"}
 pyyaml = "^6.0"
 plotly = "^5.15.0"
-numpy = "^1.20.0"
-pandas = "^2.0.2"
+pandas = "<=1.2"
 seaborn = "^0.12.2"
 tqdm = "^4.65.0"
 scikit-learn = "^1.2.2"

@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - dataiku
 
 jobs:
   upload_to_pypi:
