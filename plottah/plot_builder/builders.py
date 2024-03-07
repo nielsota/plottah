@@ -1,14 +1,13 @@
-from plottah.plot_handler import PlotHandler
-from plottah.colors import PlotColors
 from typing import Dict
 
 import pathlib
-import pandas as pd
+
 from pptx import Presentation
 from pptx.util import Inches, Pt
 
-
-from plottah.plots import DistPlot, RocCurvePlot, BinEventRatePlot
+from plottah.plot_handler import PlotHandler
+from plottah.colors import PlotColors
+from plottah.plot_builder.specific_builders import PLOT_BUILDERS_DICT
 
 
 def build_univariate_plot(
@@ -29,63 +28,25 @@ def build_univariate_plot(
     Returns
     """
 
-    # if feature type is categorical, standard plot is only event rate plot
-    if feature_type == "categorical":
-        # create plot and do math
-        event_plot = BinEventRatePlot(
-            hoverinfo=hoverinfo,
-            colors=colors,
-            n_bins=n_bins,
-            bins=bins,
-            feature_type=feature_type,
-        )
-        event_plot.do_math(df, feature_col, target)
+    # if feature type not-categoriocal, assume numerical plot type
+    feature_type = feature_type if feature_type == "categorical" else "numerical"
 
-        # need different specs, user can override but not required
-        specs = (
-            [[{"colspan": 2, "secondary_y": True}, None]] if specs is None else specs
-        )
+    # get appropriate plot builder
+    plot_builder = PLOT_BUILDERS_DICT[feature_type]
 
-        # set up handler and build only subplot
-        plot = PlotHandler(
-            feature_col=feature_col,
-            target_col=target,
-            specs=specs,
-            plot_title=f"{feature_col}: Event Rates",
-        )
-        plot.build_subplot(event_plot, 1, 1)
-    else:
-        # build all 3 subplots for general plot
-        roc_plot = RocCurvePlot(hoverinfo=hoverinfo, colors=colors)
-        dist_plot = DistPlot(hoverinfo=hoverinfo, colors=colors)
-        event_plot = BinEventRatePlot(
-            hoverinfo=hoverinfo,
-            colors=colors,
-            n_bins=n_bins,
-            bins=bins,
-            feature_type=feature_type,
-        )
-
-        # need different specs, user can override but not required
-        specs = (
-            [[{}, {}], [{"colspan": 2, "secondary_y": True}, None]]
-            if specs is None
-            else specs
-        )
-
-        plot = PlotHandler(
-            feature_col=feature_col, target_col=target, specs=specs, plot_title=None
-        )
-        # set show fig to false, show explicitly below
-        plot.build(
-            df=df,
-            feature_col=feature_col,
-            target=target,
-            topleft=roc_plot,
-            topright=dist_plot,
-            bottom=event_plot,
-            show_fig=False,
-        )
+    # build plot
+    plot = plot_builder(
+        df,
+        feature_col=feature_col,
+        target=target,
+        feature_type=feature_type,
+        colors=colors,
+        show_plot=show_plot,
+        hoverinfo=hoverinfo,
+        n_bins=n_bins,
+        bins=bins,
+        specs=specs,
+    )
 
     # show the plot if show_plot set to true
     if show_plot:

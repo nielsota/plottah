@@ -1,13 +1,13 @@
-from plottah.plot_builder import build_univariate_plots, build_powerpoint
-from plottah.config import settings
-from plottah.colors import PlotColors
-
-import pandas as pd
-
 import logging
 import pathlib
 import argparse
 from datetime import datetime
+
+import pandas as pd
+
+from plottah.plot_builder import build_univariate_plots, build_powerpoint
+from plottah.config import settings
+from plottah.colors import PlotColors
 
 parser = argparse.ArgumentParser(description="Run the univariate analyses workflow")
 logging.basicConfig(level=logging.WARN)

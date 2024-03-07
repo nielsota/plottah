@@ -1,9 +1,10 @@
-from typing import Optional, Literal
+from typing import Optional
+from pathlib import Path
+
+import re
 import yaml
 import pandas as pd
-import re
 
-from pathlib import Path
 from pydantic import BaseModel, ValidationError, validator
 
 # use this over Literal to make custom error containing more info
@@ -15,6 +16,7 @@ def parse_from_yaml(path_to_yaml):
     """
     ability to parse config.yaml
     """
+    print(ROOT_DIR)
     with open(path_to_yaml) as f:
         config = yaml.safe_load(f)
 
@@ -146,10 +148,11 @@ class Settings(BaseModel):
         return v
 
 
-# config = parse_from_yaml(str(ROOT_DIR / "config_bank.yaml"))
+# create a config object containing all the validated settings
 config = parse_from_yaml(str(ROOT_DIR / "config.yaml"))
 settings = Settings(**config)
 
+# for debugging purposes
 if __name__ == "__main__":
     config = parse_from_yaml(str(ROOT_DIR / "config.yaml"))
     print(config)

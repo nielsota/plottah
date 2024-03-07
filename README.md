@@ -1,4 +1,4 @@
-*Copyright © 2023 by Boston Consulting Group. All rights reserved*
+*Copyright © 2024 by Boston Consulting Group. All rights reserved*
 # SmartBanking Plotting tool
 
 ## Setup

@@ -20,7 +20,6 @@ features:
   - name: LN_LEXISNEXIS_THIN_FILE_FLAG_B
     type: categorical
     #type: float
-    n_bins: 5
   #- name: D_STROOPWAFFELS_AVG_6M_N 
 
 target: FLAG_60_DPD_366_DAYS
