@@ -7,7 +7,6 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.8"
-numpy = "^1.17.3"
 pre-commit = "^3.3.3"
 pytest = "^7.3.2"
 jupyter = "^1.0.0"
