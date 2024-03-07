@@ -59,7 +59,7 @@ def build_standard_numerical_univariate_plot(
         topleft=roc_plot,
         topright=dist_plot,
         bottom=event_plot,
-        show_fig=False,
+        show_fig=show_plot,
     )
 
     return plot
