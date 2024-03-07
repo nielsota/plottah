@@ -2,7 +2,7 @@
 name = "plottah"
 version = "0.1.26"
 description = ""
-authors = ["Niels Ota"]
+authors = ["Niels Ota - BCG"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
