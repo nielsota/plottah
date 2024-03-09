@@ -1,9 +1,9 @@
-name: testing
+name: Testing
 
 on:
   push:
     branches:
-      - dev
+      - develop
       - main
 
 jobs:
