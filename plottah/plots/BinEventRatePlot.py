@@ -99,18 +99,22 @@ class StandardBinner:
         # convert type to list
         bins = list(bins)
 
-        # set first and last value back to min and max before imputing
+        # set first and last value back to min and max before imputing - could lead to duplicate bins if min/max already a bin so remove duplicates
         if (bins[0] != min_val) & provided_bins:
             logging.warning(
                 f"For feature {feature_col} you provided custom bins, the smallest bin provided is {bins[0]} but minimum is {min_val}, so replacing {bins[0]} by {min_val}"
             )
             bins[0] = min_val
+            seen = set()
+            bins = [x for x in bins if x not in seen and (seen.add(x) or True)]
 
         if (bins[n_bins - 1] != max_val) & provided_bins:
             logging.warning(
                 f"For feature {feature_col} you provided custom bins, the largest bin is {bins[n_bins - 1] } but max is {max_val}, so replacing {bins[n_bins - 1]} by {max_val}"
             )
             bins[n_bins - 1] = max_val
+            seen = set()
+            bins = [x for x in bins if x not in seen and (seen.add(x) or True)]
 
         # error if not all bins are smaller than the last bin after replacing last bin by max
         if (not all(i < bins[n_bins - 1] for i in bins[:-1])) & provided_bins:
