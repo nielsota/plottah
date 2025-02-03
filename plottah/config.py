@@ -23,6 +23,10 @@ def parse_from_yaml(path_to_yaml):
     return config
 
 
+def is_in_unit_interval(number):
+    return 0 <= number <= 1
+
+
 def validate_color_string(color_string):
     pattern = r"^\d{1,3},\s?\d{1,3},\s?\d{1,3}$"
     return re.match(pattern, color_string) is not None
@@ -33,6 +37,8 @@ class FeatureSchema(BaseModel):
     type: Optional[str]
     n_bins: Optional[int] = 10
     bins: Optional[list[int]] = None
+    distplot_q_min: Optional[float] = None
+    distplot_q_max: Optional[float] = None
 
     # needs to be hashable: https://stackoverflow.com/questions/63721614/unhashable-type-in-fastapi-request
     class Config:
@@ -48,10 +54,49 @@ class FeatureSchema(BaseModel):
 
     @validator("bins")
     def validate_bins_and_nbins(cls, bins, values):
+
         if len(bins) != values["n_bins"]:
             values["n_bins"] = len(bins)
             print(f'setting n_bins for {values["name"]} to {len(bins)} based on bins')
         return bins
+
+    @validator("distplot_q_min")
+    def validate_distplot_q_min(cls, v, values):
+
+        # check the type
+        if not isinstance(v, float):
+            raise ValueError(
+                f'The min quantile you provided for {values["name"]} must be of type float, you passed type: {type(v)}'
+            )
+
+        # check on the unit interval
+        if not is_in_unit_interval(v):
+            raise ValueError(
+                f'The min quantile you for {values["name"]} must be between 0 and 1, you passed: {v}'
+            )
+        return v
+
+    @validator("distplot_q_max")
+    def validate_distplot_q_max(cls, v, values):
+
+        # check the type
+        if not isinstance(v, float):
+            raise ValueError(
+                f'The max quantile you provided for {values["name"]} must be of type float, you passed type: {type(v)}'
+            )
+
+        # check on the unit interval
+        if not is_in_unit_interval(v):
+            raise ValueError(
+                f'The max quantile you for {values["name"]} must be between 0 and 1, you passed: {v}'
+            )
+
+        # check ordering
+        distplot_q_min = values.get("distplot_q_min", None)
+        if distplot_q_min is not None and v is not None and distplot_q_min > v:
+            raise ValueError("distplot_q_min must not be greater than distplot_q_max")
+
+        return v
 
 
 class Settings(BaseModel):

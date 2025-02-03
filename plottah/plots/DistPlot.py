@@ -3,7 +3,7 @@ import plotly.figure_factory as ff
 from dataclasses import dataclass, field
 
 from .PlotProtocol import PlotProtocol
-from plottah.utils import remove_or_impute_nan_infs
+from plottah.utils import remove_or_impute_nan_infs, quantile_clipping
 from plottah.colors import PlotColors
 
 import logging
@@ -17,7 +17,17 @@ class DistPlot(PlotProtocol):
     # set hover setting
     hoverinfo: str = field(default_factory=lambda: "skip")
 
-    def do_math(self, df, feature_col, target_col, fillna: bool = False):
+    # default to no quantile clipping
+    distplot_q_min: float = field(default_factory=lambda: None)
+    distplot_q_max: float = field(default_factory=lambda: None)
+
+    def do_math(
+        self,
+        df,
+        feature_col,
+        target_col,
+        fillna: bool = False,
+    ):
         """
         does the required math to generate the traces, annotations and axes for the roc-curve plot
 
@@ -29,13 +39,52 @@ class DistPlot(PlotProtocol):
         logging.info("Started math for DistPlot")
 
         # 1. impute/remove missing values
-        self.df_imputed = remove_or_impute_nan_infs(df.copy(), feature_col, target_col)
+        self.df_imputed = remove_or_impute_nan_infs(
+            df.copy(), feature_col, target_col, fillna=fillna
+        )
+
+        # Optional - clip based on quantiles
+        if (self.distplot_q_min is not None) or (self.distplot_q_max is not None):
+
+            # if only min OR max provided, set other to limit
+            if self.distplot_q_min is None:
+                logging.warning(
+                    f"{feature_col} only has distplot_q_max ({self.distplot_q_max}) provided, so setting distplot_q_min to 0"
+                )
+                self.distplot_q_min = 0.0
+
+            if self.distplot_q_max is None:
+                logging.warning(
+                    f"{feature_col} only has distplot_q_min ({self.distplot_q_min}) provided, so setting distplot_q_max to 1"
+                )
+                self.distplot_q_max = 1.0
+
+            # clip based on quantiles
+            self.df_imputed = quantile_clipping(
+                self.df_imputed, feature_col, self.distplot_q_min, self.distplot_q_max
+            )
+
+            # get the number of distinct feature values - must be at least 2
+            distinct_values = min(
+                self.df_imputed.loc[
+                    (self.df_imputed[target_col] == 1), feature_col
+                ].nunique(),
+                self.df_imputed.loc[
+                    (self.df_imputed[target_col] == 0), feature_col
+                ].nunique(),
+            )
+
+            if distinct_values < 2:
+                logging.warning(
+                    f"One group of {feature_col} only has {self.distinct_values} distinct values, this will cause erors. Please revise the quantiles used for clipping"
+                )
 
         # 2. extract traces from the distplot function from plotly
         self.hist_data = [
             self.df_imputed.loc[(self.df_imputed[target_col] == 0), feature_col].values,
             self.df_imputed.loc[(self.df_imputed[target_col] == 1), feature_col].values,
         ]
+
         self.group_labels = ["0", "1"]
         self.distplot = ff.create_distplot(self.hist_data, self.group_labels)
 

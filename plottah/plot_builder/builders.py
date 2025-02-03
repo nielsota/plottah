@@ -1,4 +1,5 @@
 from typing import Dict
+from collections import defaultdict
 
 import pathlib
 
@@ -15,12 +16,14 @@ def build_univariate_plot(
     feature_col: str,
     target: str,
     feature_type: str = "float",
+    specs: list = None,
     colors: PlotColors = PlotColors(),
     show_plot: bool = False,
     hoverinfo="all",
     n_bins: int = 10,
     bins: list = None,
-    specs: list = None,
+    distplot_q_min: float = None,
+    distplot_q_max: float = None,
 ):
     """
     buils standard univariate plot from days 'ye
@@ -34,6 +37,9 @@ def build_univariate_plot(
     # get appropriate plot builder
     plot_builder = PLOT_BUILDERS_DICT[feature_type]
 
+    print(distplot_q_min)
+    print(distplot_q_max)
+
     # build plot
     plot = plot_builder(
         df,
@@ -46,6 +52,8 @@ def build_univariate_plot(
         n_bins=n_bins,
         bins=bins,
         specs=specs,
+        distplot_q_min=distplot_q_min,
+        distplot_q_max=distplot_q_max,
     )
 
     # show the plot if show_plot set to true
@@ -62,6 +70,8 @@ def build_univariate_plots(
     feature_types: dict,
     n_bins: dict = None,
     bins: dict = None,
+    distplot_q_min: dict = None,
+    distplot_q_max: dict = None,
     save_directory: pathlib.Path() = None,
     colors: PlotColors = PlotColors(),
     show_plot: bool = False,
@@ -79,6 +89,10 @@ def build_univariate_plots(
         Dict: map from feature name to figure
 
     """
+
+    # print(distplot_q_max)
+    # print(distplot_q_min)
+
     # if only a single feature passed wrap in a list
     if isinstance(features, str):
         features = [features]
@@ -91,6 +105,7 @@ def build_univariate_plots(
     if n_bins is None:
         n_bins = {feature: 10 for feature in features}
     else:
+        # n_bins = defaultdict(lambda: 10, n_bins)
         for feature in features:
             # user does not have to provide complete mapping
             if feature not in n_bins.keys():
@@ -99,6 +114,20 @@ def build_univariate_plots(
     # create mapping from features to float if type not provided
     if feature_types is None:
         feature_types = {feature: "float" for feature in features}
+
+    # test - need to return None if user did not provive q min for all features but only some
+    if distplot_q_min is None:
+        distplot_q_min = {feature: None for feature in features}
+    else:
+        # user does not have to provide complete mapping
+        distplot_q_min = defaultdict(lambda: None, distplot_q_min)
+
+    # test - need to return None if user did not provive q min for all features but only some
+    if distplot_q_max is None:
+        distplot_q_max = {feature: None for feature in features}
+    else:
+        # user does not have to provide complete mapping
+        distplot_q_max = defaultdict(lambda: None, distplot_q_max)
 
     # Run loop
     figs = {}
@@ -118,6 +147,8 @@ def build_univariate_plots(
             hoverinfo=hoverinfo,
             n_bins=n_bins[feature],
             bins=bins[feature],
+            distplot_q_min=distplot_q_min[feature],
+            distplot_q_max=distplot_q_max[feature],
         )
 
         if save_directory is not None:

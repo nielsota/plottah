@@ -20,17 +20,27 @@ def build_standard_numerical_univariate_plot(
     n_bins: int = 10,
     bins: list = None,
     specs: list = None,
+    **kwargs,
 ) -> PlotHandler:
     """
     buils standard univariate plot from days 'ye
 
     Returns
     """
+
+    # unpack the keyword arguments
+    distplot_q_min, distplot_q_max = kwargs["distplot_q_min"], kwargs["distplot_q_max"]
+
     # build all 3 subplots for general plot
 
     ### CREATION -> should not be here? But this is like main, here we put things together ###
     roc_plot = RocCurvePlot(hoverinfo=hoverinfo, colors=colors)
-    dist_plot = DistPlot(hoverinfo=hoverinfo, colors=colors)
+    dist_plot = DistPlot(
+        hoverinfo=hoverinfo,
+        colors=colors,
+        distplot_q_max=distplot_q_max,
+        distplot_q_min=distplot_q_min,
+    )
     event_plot = BinEventRatePlot(
         hoverinfo=hoverinfo,
         colors=colors,
@@ -76,6 +86,7 @@ def build_standard_categorical_univariate_plot(
     n_bins: int = 10,
     bins: list = None,
     specs: list = None,
+    **kwargs,
 ) -> PlotHandler:
     """
     buils standard univariate plot from days 'ye

@@ -42,9 +42,9 @@ def main():
 
     # create mapping from feature name to binning
     bins = {
-        feature_schema.name: feature_schema.bins
-        if feature_schema.bins is not None
-        else None
+        feature_schema.name: (
+            feature_schema.bins if feature_schema.bins is not None else None
+        )
         for feature_schema in settings.features
     }
 
@@ -56,14 +56,34 @@ def main():
 
     # create mapping from feature name to feature type
     feature_types = {
-        feature_schema.name: feature_schema.type
-        if feature_schema.type is not None
-        else "float"
+        feature_schema.name: (
+            feature_schema.type if feature_schema.type is not None else "float"
+        )
+        for feature_schema in settings.features
+    }
+
+    # create mapping from feature name optional dist plot quantile clipping lower bound
+    distplot_q_min = {
+        feature_schema.name: (
+            feature_schema.distplot_q_min
+            if feature_schema.distplot_q_min is not None
+            else None
+        )
+        for feature_schema in settings.features
+    }
+
+    # create mapping from feature name optional dist plot quantile clipping upper bound
+    distplot_q_max = {
+        feature_schema.name: (
+            feature_schema.distplot_q_max
+            if feature_schema.distplot_q_max is not None
+            else None
+        )
         for feature_schema in settings.features
     }
 
     # build all the univariate plots
-    figs, fig_locs = build_univariate_plots(
+    _, fig_locs = build_univariate_plots(
         df=pd.read_csv(settings.file_path),
         features=features,
         target=settings.target,
@@ -72,6 +92,8 @@ def main():
         colors=color_palette,
         bins=bins,
         n_bins=n_bins,
+        distplot_q_max=distplot_q_max,
+        distplot_q_min=distplot_q_min,
     )
 
     if build_pp:

@@ -5,6 +5,33 @@ from typing import Tuple
 import logging
 
 
+def quantile_clipping(
+    df: pd.DataFrame, feature_col: str, q_clip_min: float, q_clip_max: float
+) -> pd.DataFrame:
+    """_summary_
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        dataframe you want to clip based on quantiles of feature col
+    feature_col : str
+        column name of column you want quantiles of
+    q_clip_min : int
+        number between 1-100 - if 99, remove the top 1%
+    q_clip_max : int
+        number between 1-100 - if 1, remove the bottom 1%
+
+    Returns
+    -------
+    pd.DataFrame
+        quantile clipped dataframe
+    """
+    min_q = df[feature_col].quantile(q_clip_min)
+    max_q = df[feature_col].quantile(q_clip_max)
+
+    return df.loc[(df[feature_col] >= min_q) & (df[feature_col] <= max_q)]
+
+
 def get_n_quantile_bins(
     df: pd.DataFrame,
     feature_col: str,
@@ -147,7 +174,7 @@ def get_labels_from_bins(bins: list) -> list:
         precision += 1
 
     labels = [
-        f'({"{:,.{prec}f}".format(bins[i], prec=precision)}, {"{:,.{prec}f}".format(bins[i+1], prec=precision)}]'
+        f'[{"{:,.{prec}f}".format(bins[i], prec=precision)}, {"{:,.{prec}f}".format(bins[i+1], prec=precision)})'
         for i in range(len(bins) - 1)
     ]
     return labels
