@@ -12,4 +12,3 @@ This package provides a set of core modules for creating, handling, and assembli
 ## Design Choices
 - Handlers: These components exclusively interact with an abstraction of a Plot. Handlers come in various configurations, with different numbers of rows and columns based on specific requirements.
 - Builders: Functions responsible for combining Plots and Handlers, ensuring that the correct number of plots is created based on the specifications of a given handler: i.e., layout in terms of rows and columns of a specific handler.
-

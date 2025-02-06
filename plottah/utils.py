@@ -1,8 +1,8 @@
+import logging
+from typing import Tuple
+
 import numpy as np
 import pandas as pd
-
-from typing import Tuple
-import logging
 
 
 def quantile_clipping(
@@ -99,7 +99,7 @@ def get_bins(
     max_val_adj: float,
     n_bins: int = 10,
     method: str = "quantile",
-    bins: list = None,
+    bins: list | None = None,
 ) -> np.ndarray:
     """
     creates bins using various methods

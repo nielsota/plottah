@@ -60,4 +60,3 @@ python -m plottah
 ```
 
 See notebooks for examples on how to run code inline during development
-

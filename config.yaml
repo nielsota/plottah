@@ -9,10 +9,10 @@ features:
   - name: T_PPG_AVG_6M_N
     n_bins: 4
   - name: D_MAX_DAYS_PAST_DUE_6M_N
-    bins: 
+    bins:
           - 0
           - 1
-          - 5 
+          - 5
           - 10
           - 100
   - name: LN_LEXISNEXIS_SBFE_SCORE_CURRENT_N
@@ -22,10 +22,10 @@ features:
   - name: LN_LEXISNEXIS_THIN_FILE_FLAG_B
     type: categorical
     #type: float
-  #- name: D_STROOPWAFFELS_AVG_6M_N 
+  #- name: D_STROOPWAFFELS_AVG_6M_N
 
 target: FLAG_60_DPD_366_DAYS
-#target: D_STROOPWAFFELS_AVG_6M_N 
+#target: D_STROOPWAFFELS_AVG_6M_N
 
 #primary_color: 40, 186, 116
 #secondary_color: 41, 94, 126

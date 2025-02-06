@@ -1,9 +1,9 @@
-from plottah.__main__ import main
-from plottah.config import Settings, settings
-from plottah.plot_builder import build_univariate_plots, build_univariate_plot
-from plottah.colors import PlotColors
-import pytest
 import pandas as pd
+import pytest
+
+from plottah.colors import PlotColors
+from plottah.config import Settings
+from plottah.plot_builder import build_univariate_plot, build_univariate_plots
 
 
 @pytest.fixture

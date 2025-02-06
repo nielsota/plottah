@@ -1,11 +1,10 @@
-from typing import Optional
-from pathlib import Path
-
 import re
-import yaml
-import pandas as pd
+from pathlib import Path
+from typing import Optional
 
-from pydantic import BaseModel, ValidationError, validator
+import pandas as pd
+import yaml
+from pydantic import BaseModel, validator
 
 # use this over Literal to make custom error containing more info
 ALLOWED_TYPES = ["float", "int", "categorical"]
@@ -54,7 +53,6 @@ class FeatureSchema(BaseModel):
 
     @validator("bins")
     def validate_bins_and_nbins(cls, bins, values):
-
         if len(bins) != values["n_bins"]:
             values["n_bins"] = len(bins)
             print(f'setting n_bins for {values["name"]} to {len(bins)} based on bins')
@@ -62,7 +60,6 @@ class FeatureSchema(BaseModel):
 
     @validator("distplot_q_min")
     def validate_distplot_q_min(cls, v, values):
-
         # check the type
         if not isinstance(v, float):
             raise ValueError(
@@ -78,7 +75,6 @@ class FeatureSchema(BaseModel):
 
     @validator("distplot_q_max")
     def validate_distplot_q_max(cls, v, values):
-
         # check the type
         if not isinstance(v, float):
             raise ValueError(

@@ -1,14 +1,10 @@
-from typing import Dict
-from collections import defaultdict
-
 import pathlib
+from collections import defaultdict
+from typing import Dict
 
-from pptx import Presentation
-from pptx.util import Inches, Pt
-
-from plottah.plot_handler import PlotHandler
 from plottah.colors import PlotColors
 from plottah.plot_builder.specific_builders import PLOT_BUILDERS_DICT
+from plottah.plot_handler import PlotHandler
 
 
 def build_univariate_plot(
@@ -35,13 +31,10 @@ def build_univariate_plot(
     feature_type = feature_type if feature_type == "categorical" else "numerical"
 
     # get appropriate plot builder
-    plot_builder = PLOT_BUILDERS_DICT[feature_type]
-
-    print(distplot_q_min)
-    print(distplot_q_max)
+    plot_builder_function = PLOT_BUILDERS_DICT[feature_type]
 
     # build plot
-    plot = plot_builder(
+    plot = plot_builder_function(
         df,
         feature_col=feature_col,
         target=target,
@@ -65,18 +58,18 @@ def build_univariate_plot(
 
 def build_univariate_plots(
     df,
-    features: list,
+    features: list[str],
     target: str,
-    feature_types: dict,
-    n_bins: dict = None,
-    bins: dict = None,
-    distplot_q_min: dict = None,
-    distplot_q_max: dict = None,
-    save_directory: pathlib.Path() = None,
+    feature_types: dict[str, str],
+    n_bins: dict[str, int] | None = None,
+    bins: dict[str, list] | None = None,
+    distplot_q_min: dict[str, float] | None = None,
+    distplot_q_max: dict[str, float] | None = None,
+    save_directory: pathlib.Path | None = None,
     colors: PlotColors = PlotColors(),
     show_plot: bool = False,
     hoverinfo="none",
-) -> Dict[str, PlotHandler]:
+) -> tuple[dict[str, PlotHandler], list[pathlib.Path]]:
     """
     function that generates standard univariate plots
 
@@ -89,9 +82,6 @@ def build_univariate_plots(
         Dict: map from feature name to figure
 
     """
-
-    # print(distplot_q_max)
-    # print(distplot_q_min)
 
     # if only a single feature passed wrap in a list
     if isinstance(features, str):
@@ -161,29 +151,26 @@ def build_univariate_plots(
     return figs, save_locs
 
 
-def build_powerpoint(
-    fig_locs: list,
-    feature_names: list,
-    save_path: pathlib.Path(),
-):
-    pres = Presentation()
+if __name__ == "__main__":
 
-    for i, fig_loc in enumerate(fig_locs):
-        s_register = pres.slide_layouts[7]
-        s = pres.slides.add_slide(s_register)
+    import pandas as pd
+    import numpy as np
 
-        pic = s.shapes.add_picture(
-            str(pathlib.Path(fig_loc).resolve()),
-            Inches(0.5),
-            Inches(1.75),
-            width=Inches(7),
-            height=Inches(5),
-        )
-        pic.left = int((pres.slide_width - pic.width) / 2)
+    # generate some data
+    df = pd.DataFrame(
+        {
+            "feature": np.random.randint(0, 100, size=100),
+            "target": np.random.randint(0, 2, size=100),
+        }
+    )
 
-        title = s.shapes.title
-        title.text = f"{i} Univariate analysis for {(feature_names)[i]}"
-        title_para = s.shapes.title.text_frame.paragraphs[0]
-        title_para.font.size = Pt(24)
+    # build plots
+    fig = build_univariate_plot(
+        df=df,
+        feature_col="feature",
+        target="target",
+        feature_type="float",
+        show_plot=False,
+    )
 
-    pres.save(save_path)
+    print("done")
