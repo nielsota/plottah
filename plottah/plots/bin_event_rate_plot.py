@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, List, Literal
+from typing import Callable, Dict, List, Literal
 
 import numpy as np
 import pandas as pd
@@ -13,12 +13,14 @@ from plottah.utils import (
     get_labels_from_bins,
     get_min_max_adj,
     validate_binary_target,
+    validate_feature_column_presence,
 )
 
 MIN_N_UNIQUE = 25
 NUMERICAL_BINS = list[int, float]
 
 
+# TODO: binning should be in a seperate file - gotten too large
 @dataclass
 class CategoricalBinner:
     """
@@ -55,8 +57,19 @@ class CategoricalBinner:
         if df["bins"].isna().sum() > 0:
             self._labels.append("NA")
 
-    def add_bins(self, df: pd.DataFrame, feature_col: str) -> tuple[pd.DataFrame, list]:
-        """Add bins to dataframe for categorical features."""
+    def add_bins(
+        self,
+        df: pd.DataFrame,
+        feature_col: str,
+        **kwargs,  # Accept any additional arguments
+    ) -> tuple[pd.DataFrame, list]:
+        """Add bins to dataframe for categorical features.
+
+        Args:
+            df: Input dataframe
+            feature_col: Column to bin
+            **kwargs: Additional arguments for interface compatibility with StandardBinner
+        """
         # Extract unique values
         unique_vals = df[feature_col].sort_values().unique()
 
@@ -282,6 +295,53 @@ class StandardBinner:
         return df, self._labels
 
 
+def get_binner(
+    feature_type: Literal["categorical", "float"]
+) -> CategoricalBinner | StandardBinner:
+    logger.debug(f"Getting binner for feature type: {feature_type}")
+    if feature_type == "categorical":
+        logger.debug("Using CategoricalBinner")
+        return CategoricalBinner()
+    else:
+        logger.debug("Using StandardBinner")
+        return StandardBinner()
+
+
+def _verify_categorical_binner_eligibility(
+    df: pd.DataFrame, feature_col: str, n_bins: int
+) -> bool:
+    """Verify if the CategoricalBinner is eligible for the given dataframe and feature column."""
+    if df[feature_col].nunique() > n_bins:
+        raise ValueError(
+            f"Too many unique values for feature: {feature_col} ({df[feature_col].nunique()}) to only use {n_bins} bins. Increase n_bins to at least {df[feature_col].nunique()}!"
+        )
+    return True
+
+
+def _verify_standard_binner_eligibility(
+    df: pd.DataFrame, feature_col: str, n_bins: int
+) -> bool:
+    """Verify if the StandardBinner is eligible for the given dataframe and feature column."""
+    if df[feature_col].nunique() < MIN_N_UNIQUE:
+        logger.warning(
+            f"{feature_col} only has {df[feature_col].nunique()} distinct values, consider switching feature type for {feature_col} to categorical (currenly {feature_type})"
+        )
+    return True
+
+
+def get_binner_verifier(
+    df: pd.DataFrame,
+    feature_col: str,
+    n_bins: int,
+    feature_type: Literal["categorical", "float"],
+) -> Callable:
+    logger.debug(f"Verifying binner eligibility for feature type: {feature_type}")
+    if feature_type == "categorical":
+        return _verify_categorical_binner_eligibility
+    else:
+        return _verify_standard_binner_eligibility
+
+
 @dataclass
 class BinEventRatePlot(PlotProtocol):
     # set the colorway
@@ -295,7 +355,97 @@ class BinEventRatePlot(PlotProtocol):
     hoverinfo: str = field(default_factory=lambda: "skip")
 
     # set default feature type
-    feature_type: str = field(default_factory=lambda: "float")
+    feature_type: Literal["categorical", "float"] = field(
+        default_factory=lambda: "float"
+    )
+
+    # set default titles; can hide if not needed
+    show_legend: bool = field(default_factory=lambda: True)
+    tick_font_size: int = field(default_factory=lambda: 10)
+    title_font_size: int = field(default_factory=lambda: 12)
+    x_title: str = field(default_factory=lambda: None)
+    y_title: str = field(default_factory=lambda: "Fraction of Observations")
+    secondary_y_title: str = field(default_factory=lambda: "Event Rate")
+
+    # max bar height and event rate height
+    max_bar_height: float | None = field(default_factory=lambda: None)
+    max_event_rate_height: float | None = field(default_factory=lambda: None)
+
+    def _adjust_n_bins(self, df: pd.DataFrame, feature_col: str, n_bins: int) -> int:
+        """Adjust n_bins if less unique values exist"""
+        n_unique_feat_vals = df[feature_col].nunique()
+        if n_unique_feat_vals < n_bins:
+            logger.warning(
+                f"{feature_col} only has {n_unique_feat_vals} distinct values, "
+                f"decreasing n_bins from {n_bins} to {n_unique_feat_vals}"
+            )
+        n_bins = np.minimum(n_unique_feat_vals, n_bins)
+        return n_bins
+
+    def _get_event_rate_and_size_per_bin_df(
+        self, df: pd.DataFrame, feature_col: str, target_col: str
+    ) -> pd.DataFrame:
+        """Calculate event rate and population size for each bin.
+
+        For each bin, computes:
+        1. Population size (count of records)
+        2. Event rate (mean of target variable)
+
+        Args:
+            df: DataFrame containing the binned data
+            feature_col: Name of feature column used for binning
+            target_col: Name of target/label column (must be binary 0/1)
+
+        Returns:
+            DataFrame with multi-level columns containing bin statistics:
+                - {feature_col}_len: Count of records in bin
+                - {target_col}_mean: Mean of target variable (event rate) in bin
+        """
+        # Group by bins and calculate metrics
+        # observed=False includes empty bins in output
+        event_rate_and_size_per_bin_df = (
+            df.groupby("bins", observed=False)
+            .agg({feature_col: [len], target_col: ["mean"]})
+            .fillna(0)
+        )
+
+        # Convert multi-level column names to single level
+        # e.g. (feature, len) -> feature_len
+        level_one = event_rate_and_size_per_bin_df.columns.get_level_values(0).astype(
+            str
+        )
+        level_two = event_rate_and_size_per_bin_df.columns.get_level_values(1).astype(
+            str
+        )
+
+        # Add separator only between non-empty strings
+        column_separator = ["_" if x != "" else "" for x in level_two]
+
+        # Combine column levels into single names
+        event_rate_and_size_per_bin_df.columns = (
+            level_one + column_separator + level_two
+        )
+
+        # Set NA counts to zero
+        event_rate_and_size_per_bin_df[f"{feature_col}_len"] = (
+            event_rate_and_size_per_bin_df[f"{feature_col}_len"].fillna(0)
+        )
+
+        # make fractions
+        event_rate_and_size_per_bin_df[f"{feature_col}_frac"] = (
+            event_rate_and_size_per_bin_df[f"{feature_col}_len"]
+            / event_rate_and_size_per_bin_df[f"{feature_col}_len"].sum()
+        ).fillna(0)
+
+        # set max bar height and event rate height
+        self.max_bar_height = event_rate_and_size_per_bin_df[
+            f"{feature_col}_frac"
+        ].max()
+        self.max_event_rate_height = event_rate_and_size_per_bin_df[
+            f"{target_col}_mean"
+        ].max()
+
+        return event_rate_and_size_per_bin_df
 
     def do_math(
         self,
@@ -317,9 +467,13 @@ class BinEventRatePlot(PlotProtocol):
         # set feature and target column names
         self.feature_col = feature_col
         self.target_col = target_col
+        self.x_title = self.x_title or feature_col
 
         # validate the target column is binary
-        validate_binary_target(self.df[self.target_col])
+        validate_binary_target(df[target_col])
+
+        # validate the feature column is present in the dataframe
+        validate_feature_column_presence(df, feature_col)
 
         # make fresh copy of df
         self.df = df.copy()
@@ -329,53 +483,29 @@ class BinEventRatePlot(PlotProtocol):
 
         # Adjust n_bins if less unique values exist
         self.n_bins = self.n_bins if self.bins is None else len(self.bins)
-        n_unique_feat_vals = df[feature_col].nunique()
-        if n_unique_feat_vals < self.n_bins:
-            logger.warning(
-                f"{self.feature_col} only has {n_unique_feat_vals} distinct values, decreasing n_bins from {self.n_bins} to {n_unique_feat_vals} "
-            )
-        self.n_bins = np.minimum(n_unique_feat_vals, self.n_bins)
+        self.n_bins = self._adjust_n_bins(self.df, self.feature_col, self.n_bins)
 
-        # add bins column using strategy depending on feature type
-        if self.feature_type == "categorical":
-            logger.info("using categorical binner")
-            if self.df[self.feature_col].nunique() > self.n_bins:
-                raise ValueError(
-                    f"Too many unique values for feature: {self.feature_col} ({self.df[self.feature_col].nunique()}) to only use {self.n_bins} bins. Increase n_bins to at least {self.df[self.feature_col].nunique()}!"
-                )
-            binner = CategoricalBinner()
-            self.df, self.labels = binner.add_bins(self.df, self.feature_col)
-        else:
-            logger.info("Using standard binner")
-            if self.df[self.feature_col].nunique() < MIN_N_UNIQUE:
-                logger.warning(
-                    f"{self.feature_col} only has {self.df[self.feature_col].nunique()} distinct values, consider switching feature type for {self.feature_col} to categorical (currenly {self.feature_type})"
-                )
-            binner = StandardBinner()
-            self.df, self.labels = binner.add_bins(
-                self.df, self.feature_col, self.n_bins, self.bins, method=method
-            )
-
-        # Group into bins and calculate required metrics - observed = False doesn't impact anything but needed for warning
-        self.df_binned = self.df.groupby("bins", observed=False).agg(
-            {feature_col: [len], target_col: ["mean"]}
+        # get binner and verifier
+        binner = get_binner(self.feature_type)
+        binner_verifier = get_binner_verifier(
+            self.df, self.feature_col, self.n_bins, self.feature_type
         )
 
-        # Rename columns
-        level_one = self.df_binned.columns.get_level_values(0).astype(str)
-        level_two = self.df_binned.columns.get_level_values(1).astype(str)
-        column_separator = ["_" if x != "" else "" for x in level_two]
-        self.df_binned.columns = level_one + column_separator + level_two
+        # verify binner eligibility
+        binner_verifier(self.df, self.feature_col, self.n_bins)
 
-        # Set NA counts to zero
-        self.df_binned[f"{feature_col}_len"] = self.df_binned[
-            f"{feature_col}_len"
-        ].fillna(0)
+        # add bins
+        self.df, self.labels = binner.add_bins(
+            df=self.df,
+            feature_col=self.feature_col,
+            n_bins=self.n_bins,
+            bins=self.bins,
+            method=method,
+        )
 
-        # make fractions
-        self.df_binned[f"{feature_col}_len"] = (
-            self.df_binned[f"{feature_col}_len"]
-            / self.df_binned[f"{feature_col}_len"].sum()
+        # Calculate event rate and size for each bin. This will be used to plot the bar chart and event rate line
+        self.event_rate_and_size_per_bin_df = self._get_event_rate_and_size_per_bin_df(
+            self.df, self.feature_col, self.target_col
         )
 
     def get_traces(self) -> List[Dict]:
@@ -384,7 +514,7 @@ class BinEventRatePlot(PlotProtocol):
             {
                 "trace": go.Bar(
                     x=self.labels,
-                    y=self.df_binned[f"{self.feature_col}_len"],
+                    y=self.event_rate_and_size_per_bin_df[f"{self.feature_col}_frac"],
                     marker_color=self.colors.get_rgba("secondary_color", opacity=0.1),
                     marker_line_color=self.colors.get_rgba("secondary_color"),
                     marker_line_width=1.5,
@@ -408,6 +538,7 @@ class BinEventRatePlot(PlotProtocol):
                     ),
                     hoverinfo=self.hoverinfo,
                     name=f"General Event Rate: ({'{:.1%}'.format(self.event_rate)})",
+                    showlegend=self.show_legend,
                 ),
                 # share y
                 "secondary_y": True,
@@ -416,7 +547,7 @@ class BinEventRatePlot(PlotProtocol):
             {
                 "trace": go.Scatter(
                     x=self.labels,
-                    y=self.df_binned[f"{self.target_col}_mean"],
+                    y=self.event_rate_and_size_per_bin_df[f"{self.target_col}_mean"],
                     mode="lines+markers",
                     line=dict(
                         color=self.colors.get_rgba(),
@@ -424,6 +555,7 @@ class BinEventRatePlot(PlotProtocol):
                     ),
                     hoverinfo=self.hoverinfo,
                     name="Event Rate",
+                    showlegend=self.show_legend,
                 ),
                 # share y
                 "secondary_y": True,
@@ -432,8 +564,9 @@ class BinEventRatePlot(PlotProtocol):
 
     def get_x_axes_layout(self, row, col):
         return dict(
-            title_text=f"{self.feature_col}",
-            title_font={"size": 12},
+            title_text=self.x_title,
+            title_font={"size": self.title_font_size},
+            tickfont={"size": self.tick_font_size},
             row=row,
             col=col,
             title_standoff=5,  # decrease space between title and plot
@@ -442,16 +575,167 @@ class BinEventRatePlot(PlotProtocol):
 
     def get_y_axes_layout(self, row, col):
         return dict(
-            title_text="Fraction of Observations",
-            title_font={"size": 12},
-            # range=[0, 1.2 * self.df_binned[f"{self.feature_col}_len"].max()],
+            title_text=self.y_title,
+            title_font={"size": self.title_font_size},
+            tickfont={"size": self.tick_font_size},
             row=row,
             col=col,
             title_standoff=5,  # decrease space between title and plot
         )
 
     def get_secondary_y_axis_title(self):
-        return "Event Rate"
+        return self.secondary_y_title
 
     def get_annotations(self, xref, yref):
         return []
+
+
+if __name__ == "__main__":
+    """Example usage of BinEventRatePlot with both StandardBinner and CategoricalBinner."""
+
+    from plotly.subplots import make_subplots
+
+    # Create sample data
+    df = pd.DataFrame(
+        {
+            "numerical_feature": np.random.normal(0, 1, 1000),
+            "categorical_feature": np.random.choice(["A", "B", "C"], 1000),
+            "target": np.random.choice([0, 1], 1000),
+        }
+    )
+
+    # Create empty plotly figure using subplots, 2x2
+    fig = make_subplots(
+        rows=2,
+        cols=2,
+        specs=[[{"secondary_y": True}] * 2, [{"secondary_y": True}] * 2],
+        horizontal_spacing=0.1,  # Adjust space between columns (default is 0.2)
+        vertical_spacing=0.15,
+    )
+
+    # create the plots
+    tl = BinEventRatePlot(
+        n_bins=10,
+        feature_type="float",
+        tick_font_size=12,
+        x_title="Numerical Feature",
+        y_title="Fraction of Observations",
+        secondary_y_title="Event Rate",
+    )
+    tr = BinEventRatePlot(
+        bins=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        show_legend=False,
+        tick_font_size=14,
+        x_title="Numerical Feature but custom bins",
+        y_title="Fraction of Observations",
+        secondary_y_title="Event Rate",
+    )
+    bl = BinEventRatePlot(
+        n_bins=3,
+        feature_type="categorical",
+        show_legend=False,
+        tick_font_size=10,
+        x_title="Categorical Feature, small font",
+        y_title="Fraction of Observations",
+        secondary_y_title="Does this work?",
+    )
+    br = BinEventRatePlot(
+        bins=["A", "B", "C"],
+        feature_type="categorical",
+        show_legend=False,
+        tick_font_size=10,
+        x_title="Categorical Feature, custom bins",
+        y_title="Fraction of Observations",
+        secondary_y_title="Event Rate",
+    )
+
+    # do the math
+    tl.do_math(
+        df=df,
+        feature_col="numerical_feature",
+        target_col="target",
+    )
+    tr.do_math(
+        df=df,
+        feature_col="numerical_feature",
+        target_col="target",
+    )
+    bl.do_math(
+        df=df,
+        feature_col="categorical_feature",
+        target_col="target",
+    )
+    br.do_math(
+        df=df,
+        feature_col="categorical_feature",
+        target_col="target",
+    )
+
+    # max bar height
+    max_bar_height = (
+        np.ceil(
+            max(
+                [
+                    tl.max_bar_height,
+                    tr.max_bar_height,
+                    bl.max_bar_height,
+                    br.max_bar_height,
+                ]
+            )
+            * 10
+        )
+        / 10
+    )
+    max_event_rate_height = (
+        np.ceil(
+            max(
+                [
+                    tl.max_event_rate_height,
+                    tr.max_event_rate_height,
+                    bl.max_event_rate_height,
+                    br.max_event_rate_height,
+                ]
+            )
+            * 10
+        )
+        / 10
+    )
+
+    # Replace the dictionary with a list of tuples
+    plot_positions = [
+        (tl, 1, 1, "yaxis2"),
+        (tr, 1, 2, "yaxis4"),
+        (bl, 2, 1, "yaxis6"),
+        (br, 2, 2, "yaxis8"),
+    ]
+
+    # Update the loop to use the list of tuples
+    for plot, row, col, secondary_y in plot_positions:
+        for trace_dict in plot.get_traces():
+            fig.add_trace(
+                trace_dict["trace"],
+                secondary_y=trace_dict["secondary_y"],
+                row=row,
+                col=col,
+            )
+
+            # update axes layout if specifed
+            if plot.get_x_axes_layout(row, col) is not None:
+                fig.update_xaxes(**plot.get_x_axes_layout(row, col))
+
+            if plot.get_y_axes_layout(row, col) is not None:
+                fig.update_yaxes(**plot.get_y_axes_layout(row, col))
+
+            # Set consistent y-axis ranges for both primary and secondary y-axes
+            fig.update_yaxes(
+                range=[0, max_bar_height], row=row, col=col, secondary_y=False
+            )  # For fraction of observations
+            fig.update_yaxes(
+                range=[0, max_event_rate_height], row=row, col=col, secondary_y=True
+            )  # For event rate
+
+            # set title for secondary y-axis
+            fig.layout[secondary_y].title.text = "Event Rate"
+
+    # show the figure
+    fig.show()

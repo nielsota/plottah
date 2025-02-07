@@ -21,6 +21,10 @@ class DistPlot(PlotProtocol):
     distplot_q_min: float = field(default_factory=lambda: None)
     distplot_q_max: float = field(default_factory=lambda: None)
 
+    # set default titles; can hide if not needed
+    tick_font_size: int = field(default_factory=lambda: 10)
+    title_font_size: int = field(default_factory=lambda: 12)
+
     def do_math(
         self,
         df,
@@ -122,12 +126,16 @@ class DistPlot(PlotProtocol):
         ]
 
     def get_x_axes_layout(self, row, col):
-        return None
+        return dict(
+            title_font={"size": self.title_font_size},
+            tickfont={"size": self.tick_font_size},
+        )
 
     def get_y_axes_layout(self, row, col):
         return dict(
             title_text="Density",
-            title_font={"size": 12},
+            title_font={"size": self.title_font_size},
+            tickfont={"size": self.tick_font_size},
             row=row,
             col=col,
             title_standoff=5,  # decrease space between title and plot

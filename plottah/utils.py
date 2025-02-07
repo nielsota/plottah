@@ -3,8 +3,10 @@ from typing import Literal, Tuple
 
 import numpy as np
 import pandas as pd
+from loguru import logger
 
-from plottah.config import NUMERICAL_BINS
+# TODO: seperate utils from binning
+NUMERICAL_BINS = list[int, float]
 
 
 def quantile_clipping(
@@ -101,7 +103,7 @@ def remove_or_impute_nan_infs(
     """
     remove nan, inf and -inf elements or impute w/ median
     """
-    if fillna == True:
+    if fillna:
         df.loc[df[feature_col].isin([-np.inf, np.inf, np.nan]), feature_col] = df.loc[
             ~df[feature_col].isin([-np.inf, np.inf, np.nan]), feature_col
         ].median()
@@ -220,7 +222,7 @@ def get_labels_from_bins(bins: NUMERICAL_BINS) -> list:
     return labels
 
 
-def validate_binary_target(values: pd.Series | pd.DataFrame | np.array) -> bool:
+def validate_binary_target(values: pd.Series | pd.DataFrame | np.ndarray) -> bool:
     """Validates that input contains only 0 and 1 values."""
 
     # Convert input to numpy array for consistent handling
@@ -231,7 +233,7 @@ def validate_binary_target(values: pd.Series | pd.DataFrame | np.array) -> bool:
     unique_vals = np.unique(values[~np.isnan(values)])
 
     # Log unique values found
-    logger.debug(f"Found unique values: {unique_vals}")
+    logger.debug(f"Found unique target values: {unique_vals}")
 
     # Check if only 0 or only 1 present
     if len(unique_vals) == 1:
@@ -243,6 +245,13 @@ def validate_binary_target(values: pd.Series | pd.DataFrame | np.array) -> bool:
     if not set(unique_vals) <= {0, 1}:
         raise ValueError(f"Target contains values other than 0 and 1: {unique_vals}")
 
+    return True
+
+
+def validate_feature_column_presence(df: pd.DataFrame, feature_col: str) -> bool:
+    """Validates that the feature column is present in the dataframe."""
+    if feature_col not in df.columns:
+        raise ValueError(f"Feature column {feature_col} not found in dataframe")
     return True
 
 
