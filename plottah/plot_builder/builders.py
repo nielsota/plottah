@@ -152,9 +152,8 @@ def build_univariate_plots(
 
 
 if __name__ == "__main__":
-
-    import pandas as pd
     import numpy as np
+    import pandas as pd
 
     # generate some data
     df = pd.DataFrame(

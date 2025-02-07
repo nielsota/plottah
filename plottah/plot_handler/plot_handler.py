@@ -211,9 +211,9 @@ class PlotHandler:
             # name of axis contained in self.yaxes on index (row - 1, col - 1) is the primary axes, plotly will store the secondary yaxis one further; i.e. stored at index (row - 1 , col)
             secondary_yaxis = self.yaxes[row - 1][col]
             logging.info(f"Got secondary y-axes title for {self.feature_col}")
-            self.fig.layout[secondary_yaxis].title.text = (
-                subplot.get_secondary_y_axis_title()
-            )
+            self.fig.layout[
+                secondary_yaxis
+            ].title.text = subplot.get_secondary_y_axis_title()
             logging.info(f"Got layout y-axes title for {self.feature_col}")
 
     def build(

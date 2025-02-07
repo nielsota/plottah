@@ -1,8 +1,8 @@
 import pandas as pd
 
 from plottah.colors import PlotColors
-from plottah.plots import BinEventRatePlot, DistPlot, RocCurvePlot
 from plottah.plot_handler import PlotHandler
+from plottah.plots import BinEventRatePlot, DistPlot, RocCurvePlot
 
 #### Responsibility: put together specific Plots and Handlers into graphs
 
@@ -119,6 +119,7 @@ def build_standard_categorical_univariate_plot(
 # TODO: bins should be the same
 # TODO: title fonts should be customizable
 # TODO: event rate should span the entire plot
+# TODO: want a type that preserves the order of bins, but discrete values...
 def build_split_bin_event_rate_plot(
     df_top: pd.DataFrame,
     df_bottom: pd.DataFrame,
@@ -199,8 +200,9 @@ PLOT_BUILDERS_DICT = {
 
 
 if __name__ == "__main__":
-    import pandas as pd
     import numpy as np
+    import pandas as pd
+
     from plottah.colors import PlotColors
 
     # Generate sample data

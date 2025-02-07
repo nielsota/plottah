@@ -1,8 +1,10 @@
 import logging
-from typing import Tuple
+from typing import Literal, Tuple
 
 import numpy as np
 import pandas as pd
+
+from plottah.config import NUMERICAL_BINS
 
 
 def quantile_clipping(
@@ -32,7 +34,8 @@ def quantile_clipping(
     return df.loc[(df[feature_col] >= min_q) & (df[feature_col] <= max_q)]
 
 
-def get_n_quantile_bins(
+# TODO: update type hinting
+def generate_n_quantile_bins(
     df: pd.DataFrame,
     feature_col: str,
     min_val_adj: float,
@@ -57,6 +60,10 @@ def get_n_quantile_bins(
         Bins
     """
 
+    logger.debug(
+        f"Generating {n_bins} bins for {feature_col} between {min_val_adj} and {max_val_adj}"
+    )
+
     # start count at number of bins
     i = n_bins
 
@@ -73,7 +80,19 @@ def get_n_quantile_bins(
         )
         i += 1
 
-    return bins
+    return NUMERICAL_BINS(bins)
+
+
+def generate_linear_bins(
+    min_val_adj: float,
+    max_val_adj: float,
+    n_bins: int,
+) -> NUMERICAL_BINS:
+    """Generate linear bins."""
+    logger.debug(
+        f"Generating {n_bins} linear bins between {min_val_adj} and {max_val_adj}"
+    )
+    return NUMERICAL_BINS(np.linspace(min_val_adj, max_val_adj, n_bins))
 
 
 def remove_or_impute_nan_infs(
@@ -92,17 +111,17 @@ def remove_or_impute_nan_infs(
     return df
 
 
-def get_bins(
+# TODO: update type hinting
+def generate_bins(
     df: pd.DataFrame,
     feature_col: str,
     min_val_adj: float,
     max_val_adj: float,
     n_bins: int = 10,
-    method: str = "quantile",
-    bins: list | None = None,
-) -> np.ndarray:
+    method: Literal["quantile", "linear"] = "quantile",
+) -> NUMERICAL_BINS:
     """
-    creates bins using various methods
+    generates bins using various methods
     """
 
     # check: if method not manual then must be quantile or linear
@@ -114,11 +133,13 @@ def get_bins(
     # Create equidistant grid
     if method == "quantile":
         # use this function to ensure we get nbin bins even when using quantiles
-        bins = get_n_quantile_bins(df, feature_col, min_val_adj, max_val_adj, n_bins)
+        bins = generate_n_quantile_bins(
+            df, feature_col, min_val_adj, max_val_adj, n_bins
+        )
 
     else:
         # get bins using linspace
-        bins = np.linspace(min_val_adj, max_val_adj, n_bins)
+        bins = generate_linear_bins(min_val_adj, max_val_adj, n_bins)
 
     return bins
 
@@ -161,20 +182,102 @@ def get_min_max_adj(df: pd.DataFrame, feature_col: str) -> Tuple[float, float]:
     return (min_val_adj, max_val_adj)
 
 
-def get_labels_from_bins(bins: list) -> list:
+def get_labels_from_bins(bins: NUMERICAL_BINS) -> list:
     """
-    generate labels from bins
+    Generate labels from bins. The precision (decimal places) is automatically determined
+    to ensure all bin values are uniquely represented.
 
-    example: [0, 1, 2] -> ['(0.00, 1.00]', '(1.00, 2.00]']
+    Example:
+        [0, 1, 2] -> ['(0.00, 1.00]', '(1.00, 2.00]']
+
+    If bins are very close together (e.g., [1.11111, 1.11112]), precision will increase
+    until all values can be distinguished.
+
+    Parameters
+    ----------
+    bins : NUMERICAL_BINS
+        List of bin edges
+
+    Returns
+    -------
+    list
+        List of formatted bin labels as right-inclusive intervals
     """
-
     precision = 0
     while len(bins) > len(np.unique(np.round(bins, precision))):
-        logging.info(f"precision currently: {precision}")
+        logging.debug(f"precision currently: {precision}")
         precision += 1
 
-    labels = [
-        f'[{"{:,.{prec}f}".format(bins[i], prec=precision)}, {"{:,.{prec}f}".format(bins[i+1], prec=precision)})'
-        for i in range(len(bins) - 1)
-    ]
+    def _format_bin_value(value: float, precision: int) -> str:
+        return "{:,.{prec}f}".format(value, prec=precision)
+
+    labels = []
+    for i in range(len(bins) - 1):
+        left_bracket = "[" if i == 0 else "("
+        left_value = _format_bin_value(bins[i], precision)
+        right_value = _format_bin_value(bins[i + 1], precision)
+        labels.append(f"{left_bracket}{left_value}, {right_value}]")
     return labels
+
+
+def validate_binary_target(values: pd.Series | pd.DataFrame | np.array) -> bool:
+    """Validates that input contains only 0 and 1 values."""
+
+    # Convert input to numpy array for consistent handling
+    if isinstance(values, (pd.Series, pd.DataFrame)):
+        values = values.values
+
+    # Get unique values, excluding NaN
+    unique_vals = np.unique(values[~np.isnan(values)])
+
+    # Log unique values found
+    logger.debug(f"Found unique values: {unique_vals}")
+
+    # Check if only 0 or only 1 present
+    if len(unique_vals) == 1:
+        raise ValueError(
+            f"Target contains only value {unique_vals[0]}. Both 0 and 1 must be present."
+        )
+
+    # Check if values other than 0 and 1 are present
+    if not set(unique_vals) <= {0, 1}:
+        raise ValueError(f"Target contains values other than 0 and 1: {unique_vals}")
+
+    return True
+
+
+if __name__ == "__main__":
+    from loguru import logger
+
+    # Create sample data
+    logger.info("Creating sample data...")
+    df = pd.DataFrame(
+        {
+            "feature": [1, 2, 3, 4, 5, np.inf, -np.inf, np.nan],
+            "other": [10, 20, 30, 40, 50, 60, 70, 80],
+        }
+    )
+
+    # Test quantile_clipping
+    logger.info("Testing quantile_clipping...")
+    df_clipped = quantile_clipping(df, "feature", 0.1, 0.9)
+    logger.info(f"Original shape: {df.shape}, Clipped shape: {df_clipped.shape}")
+
+    # Test generate_n_quantile_bins
+    logger.info("Testing generate_n_quantile_bins...")
+    min_val, max_val = get_min_max_adj(df, "feature")
+    bins = generate_n_quantile_bins(df, "feature", min_val, max_val, n_bins=3)
+    logger.info(f"Generated bins: {bins}")
+
+    # Test get_min_max_adj
+    logger.info("Testing get_min_max_adj...")
+    min_adj, max_adj = get_min_max_adj(df, "feature")
+    logger.info(f"Adjusted min: {min_adj}, Adjusted max: {max_adj}")
+
+    # Test get_labels_from_bins
+    logger.info("Testing get_labels_from_bins...")
+    test_bins = [0, 1, 2, 3]
+    labels = get_labels_from_bins(test_bins)
+    logger.info(f"Generated labels: {labels}")
+
+    logger.success("All tests completed successfully!")
