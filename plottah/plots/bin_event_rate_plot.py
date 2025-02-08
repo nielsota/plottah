@@ -324,7 +324,7 @@ def _verify_standard_binner_eligibility(
     """Verify if the StandardBinner is eligible for the given dataframe and feature column."""
     if df[feature_col].nunique() < MIN_N_UNIQUE:
         logger.warning(
-            f"{feature_col} only has {df[feature_col].nunique()} distinct values, consider switching feature type for {feature_col} to categorical (currenly {feature_type})"
+            f"{feature_col} only has {df[feature_col].nunique()} distinct values, consider switching feature type for {feature_col} to categorical)"
         )
     return True
 
@@ -360,9 +360,6 @@ class BinEventRatePlot(PlotProtocol):
     )
 
     # set default titles; can hide if not needed
-    primary_y: Literal["fraction", "event_rate"] = field(
-        default_factory=lambda: "fraction"
-    )
     show_legend: bool = field(default_factory=lambda: True)
     tick_font_size: int = field(default_factory=lambda: 10)
     title_font_size: int = field(default_factory=lambda: 12)
@@ -381,18 +378,10 @@ class BinEventRatePlot(PlotProtocol):
     def __post_init__(self):
         # Set default y-axis titles if not provided
         if self.y_title is None:
-            self.y_title = (
-                "Fraction of Observations"
-                if self.primary_y == "fraction"
-                else "Event Rate"
-            )
+            self.y_title = "Fraction of Observations"
 
         if self.secondary_y_title is None:
-            self.secondary_y_title = (
-                "Event Rate"
-                if self.primary_y == "fraction"
-                else "Fraction of Observations"
-            )
+            self.secondary_y_title = "Event Rate"
 
     def _adjust_n_bins(self, df: pd.DataFrame, feature_col: str, n_bins: int) -> int:
         """Adjust n_bins if less unique values exist"""
@@ -470,7 +459,7 @@ class BinEventRatePlot(PlotProtocol):
 
         return event_rate_and_size_per_bin_df
 
-    def _get_bar_trace(self, is_primary_y: bool) -> Dict:
+    def _get_bar_trace(self) -> Dict:
         return {
             "trace": go.Bar(
                 x=self.labels,
@@ -483,10 +472,10 @@ class BinEventRatePlot(PlotProtocol):
                 hoverinfo=self.hoverinfo,
             ),
             # share y
-            "secondary_y": not is_primary_y,
+            "secondary_y": False,
         }
 
-    def _get_event_rate_trace(self, is_primary_y: bool) -> Dict:
+    def _get_event_rate_trace(self) -> Dict:
         return {
             "trace": go.Scatter(
                 x=self.labels,
@@ -501,7 +490,7 @@ class BinEventRatePlot(PlotProtocol):
                 showlegend=self.show_legend,
             ),
             # share y
-            "secondary_y": not is_primary_y,
+            "secondary_y": True,
         }
 
     def _get_general_event_rate_trace(self) -> Dict:
@@ -522,20 +511,6 @@ class BinEventRatePlot(PlotProtocol):
             # share y
             "secondary_y": True,
         }
-
-    def _get_primary_y_trace(self) -> Dict:
-        return (
-            self._get_bar_trace(is_primary_y=True)
-            if self.primary_y == "fraction"
-            else self._get_event_rate_trace(is_primary_y=True)
-        )
-
-    def _get_secondary_y_trace(self) -> Dict:
-        return (
-            self._get_event_rate_trace(is_primary_y=False)
-            if self.primary_y == "fraction"
-            else self._get_bar_trace(is_primary_y=False)
-        )
 
     def do_math(
         self,
@@ -604,11 +579,11 @@ class BinEventRatePlot(PlotProtocol):
     def get_traces(self) -> List[Dict]:
         return [
             # plot bar chart or event rate, depending on primary_y
-            self._get_primary_y_trace(),
+            self._get_bar_trace(),
             # plot binned event rate baseline
             self._get_general_event_rate_trace(),
             # plot binned event rate or bar chart, depending on primary_y
-            self._get_secondary_y_trace(),
+            self._get_event_rate_trace(),
         ]
 
     def get_x_axes_layout(self, row, col):

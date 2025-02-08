@@ -1,6 +1,7 @@
 from typing import Literal
 
 import pandas as pd
+from loguru import logger
 from plotly.graph_objects import Figure
 from plotly.subplots import make_subplots
 
@@ -118,6 +119,18 @@ def build_standard_categorical_univariate_plot(
     return plot
 
 
+def _get_max_bar_height(plots: list[BinEventRatePlot]) -> float:
+    max_bar_height = max([plot.max_bar_height for plot in plots])
+    logger.debug(f"max_bar_height: {max_bar_height}")
+    return np.ceil(max_bar_height * 11) / 10
+
+
+def _get_max_event_rate_height(plots: list[BinEventRatePlot]) -> float:
+    max_event_rate_height = max([plot.max_event_rate_height for plot in plots])
+    logger.debug(f"max_event_rate_height: {max_event_rate_height}")
+    return np.ceil(max_event_rate_height * 11) / 10
+
+
 # TODO: event rate should span the entire plot
 # TODO: want a type that preserves the order of bins, but discrete values...
 def build_split_bin_event_rate_plot(
@@ -140,7 +153,6 @@ def build_split_bin_event_rate_plot(
     secondary_y_title: str | None = None,
     title_standoff: int = 5,
     fillna_event_rate: bool = True,
-    primary_y: Literal["fraction", "event_rate"] = "fraction",
 ) -> Figure:
     """
     buils standard univariate plot from days 'ye
@@ -172,7 +184,6 @@ def build_split_bin_event_rate_plot(
         hoverinfo=hoverinfo,
         title_standoff=title_standoff,
         fillna_event_rate=fillna_event_rate,
-        primary_y=primary_y,
         # FIXED ARGUMENTS
         show_legend=True,
     )
@@ -188,7 +199,6 @@ def build_split_bin_event_rate_plot(
         hoverinfo=hoverinfo,
         title_standoff=title_standoff,
         fillna_event_rate=fillna_event_rate,
-        primary_y=primary_y,
         # FIXED ARGUMENTS
         show_legend=False,
     )
@@ -206,30 +216,8 @@ def build_split_bin_event_rate_plot(
     )
 
     # max bar height
-    max_bar_height = (
-        np.ceil(
-            max(
-                [
-                    top_plot.max_bar_height,
-                    bottom_plot.max_bar_height,
-                ]
-            )
-            * 11
-        )
-        / 10
-    )
-    max_event_rate_height = (
-        np.ceil(
-            max(
-                [
-                    top_plot.max_event_rate_height,
-                    bottom_plot.max_event_rate_height,
-                ]
-            )
-            * 11
-        )
-        / 10
-    )
+    max_bar_height = _get_max_bar_height([top_plot, bottom_plot])
+    max_event_rate_height = _get_max_event_rate_height([top_plot, bottom_plot])
 
     # Replace the dictionary with a list of tuples
     plot_positions = [
@@ -259,23 +247,20 @@ def build_split_bin_event_rate_plot(
                 range=[0, max_bar_height],
                 row=row,
                 col=col,
-                secondary_y=True if primary_y == "fraction" else False,
+                secondary_y=False,
             )  # For fraction of observations
             fig.update_yaxes(
                 range=[0, max_event_rate_height],
                 row=row,
                 col=col,
-                secondary_y=True if primary_y == "event_rate" else False,
+                secondary_y=True,
             )  # For event rate
 
             # TODO: this is a quick fix -- SHOULD BE FIXED
             # set title for secondary y-axis
-            fig.layout[primary_y].title.text = y_title or (
-                "Fraction of Observations" if primary_y == "fraction" else "Event Rate"
-            )
-            fig.layout[secondary_y].title.text = secondary_y_title or (
-                "Event Rate" if primary_y == "fraction" else "Fraction of Observations"
-            )
+            fig.layout[primary_y].title.text = y_title or "Fraction of Observations"
+            fig.layout[secondary_y].title.text = secondary_y_title or "Event Rate"
+
             # After all the traces are added, update the legend font size
             fig.update_layout(legend=dict(font=dict(size=legend_font_size)))
 
@@ -334,7 +319,6 @@ if __name__ == "__main__":
         title_font_size=18,
         legend_font_size=18,
         fillna_event_rate=False,
-        primary_y="event_rate",
         title_standoff=10,
     )
 
