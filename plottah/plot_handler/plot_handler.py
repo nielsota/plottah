@@ -207,7 +207,6 @@ class PlotHandler:
             self.fig.update_yaxes(**subplot.get_y_axes_layout(row, col))
 
         # update secondary y_axis if applicable
-
         if subplot.get_secondary_y_axis_title() is not None:
             logger.debug(f"Building secondary y-axes title for {self.feature_col}")
             # name of axis contained in self.yaxes on index (row - 1, col - 1) is the primary axes, plotly will store the secondary yaxis one further; i.e. stored at index (row - 1 , col)

@@ -1,4 +1,8 @@
+from typing import Literal
+
 import pandas as pd
+from plotly.graph_objects import Figure
+from plotly.subplots import make_subplots
 
 from plottah.colors import PlotColors
 from plottah.plot_handler import PlotHandler
@@ -114,10 +118,6 @@ def build_standard_categorical_univariate_plot(
     return plot
 
 
-# TODO: should have the same y-axes
-# TODO: should not have 2 legends
-# TODO: bins should be the same
-# TODO: title fonts should be customizable
 # TODO: event rate should span the entire plot
 # TODO: want a type that preserves the order of bins, but discrete values...
 def build_split_bin_event_rate_plot(
@@ -126,69 +126,161 @@ def build_split_bin_event_rate_plot(
     feature_col: str,
     target: str,
     bins: list[float],
-    feature_type: str = "numerical",
+    top_x_title: str,
+    bottom_x_title: str,
+    feature_type: Literal["numerical", "categorical"] = "numerical",
     colors: PlotColors = PlotColors(),
     hoverinfo="all",
-) -> PlotHandler:
+    horizontal_spacing: float = 0.1,
+    vertical_spacing: float = 0.15,
+    tick_font_size: int = 12,
+    title_font_size: int = 14,
+    legend_font_size: int = 12,
+    y_title: str | None = None,
+    secondary_y_title: str | None = None,
+    title_standoff: int = 5,
+    fillna_event_rate: bool = True,
+    primary_y: Literal["fraction", "event_rate"] = "fraction",
+) -> Figure:
     """
     buils standard univariate plot from days 'ye
 
     Returns
     """
 
-    # create plot and do math
-    event_plot_top = BinEventRatePlot(
-        hoverinfo=hoverinfo,
-        colors=colors,
-        n_bins=len(bins),
+    # Create empty plotly figure using subplots, 2x2
+    fig: Figure = make_subplots(
+        rows=2,
+        cols=1,
+        specs=[[{"secondary_y": True}] * 1, [{"secondary_y": True}] * 1],
+        horizontal_spacing=horizontal_spacing,
+        vertical_spacing=vertical_spacing,
+    )
+
+    fig.print_grid()
+
+    # create the plots
+    top_plot = BinEventRatePlot(
         bins=bins,
         feature_type=feature_type,
-    )
-    event_plot_top.do_math(df_top, feature_col, target)
-
-    event_plot_bottom = BinEventRatePlot(
-        hoverinfo=hoverinfo,
+        tick_font_size=tick_font_size,
+        title_font_size=title_font_size,
+        x_title=top_x_title,
+        y_title=y_title,
+        secondary_y_title=secondary_y_title,
         colors=colors,
-        n_bins=len(bins),
+        hoverinfo=hoverinfo,
+        title_standoff=title_standoff,
+        fillna_event_rate=fillna_event_rate,
+        primary_y=primary_y,
+        # FIXED ARGUMENTS
+        show_legend=True,
+    )
+    bottom_plot = BinEventRatePlot(
         bins=bins,
         feature_type=feature_type,
+        tick_font_size=tick_font_size,
+        title_font_size=title_font_size,
+        x_title=bottom_x_title,
+        y_title=y_title,
+        secondary_y_title=secondary_y_title,
+        colors=colors,
+        hoverinfo=hoverinfo,
+        title_standoff=title_standoff,
+        fillna_event_rate=fillna_event_rate,
+        primary_y=primary_y,
+        # FIXED ARGUMENTS
+        show_legend=False,
     )
-    event_plot_bottom.do_math(df_bottom, feature_col, target)
 
-    # override event rate for both plots so they are the same
-    event_rate = np.mean(pd.concat([df_top, df_bottom])[target])
-    event_plot_top.event_rate = event_rate
-    event_plot_bottom.event_rate = event_rate
-
-    # 2 rows, each with 2 columns and a secondary y axis
-    specs = [
-        [{"colspan": 2, "secondary_y": True}, None],
-        [{"colspan": 2, "secondary_y": True}, None],
-    ]
-
-    # set up handler and build only subplot
-    plot = PlotHandler(
+    # do the math
+    top_plot.do_math(
+        df=df_top,
         feature_col=feature_col,
         target_col=target,
-        specs=specs,
-        plot_title=f"{feature_col}: Event Rates",
     )
-    plot.build_subplot(event_plot_top, 1, 1)
-    plot.build_subplot(event_plot_bottom, 2, 1)
-
-    # Update legend position and hide second legend
-    plot.fig.update_layout(
-        legend=dict(
-            x=1.30,  # Move legend further right
-            y=0.9,  # Position for top subplot legend
-        ),
-        legend2=dict(
-            visible=False,
-        ),
-        legend_tracegroupgap=180,
+    bottom_plot.do_math(
+        df=df_bottom,
+        feature_col=feature_col,
+        target_col=target,
     )
 
-    return plot
+    # max bar height
+    max_bar_height = (
+        np.ceil(
+            max(
+                [
+                    top_plot.max_bar_height,
+                    bottom_plot.max_bar_height,
+                ]
+            )
+            * 11
+        )
+        / 10
+    )
+    max_event_rate_height = (
+        np.ceil(
+            max(
+                [
+                    top_plot.max_event_rate_height,
+                    bottom_plot.max_event_rate_height,
+                ]
+            )
+            * 11
+        )
+        / 10
+    )
+
+    # Replace the dictionary with a list of tuples
+    plot_positions = [
+        (top_plot, 1, 1, "yaxis", "yaxis2"),
+        (bottom_plot, 2, 1, "yaxis3", "yaxis4"),
+    ]
+
+    # Update the loop to use the list of tuples
+    for plot, row, col, primary_y, secondary_y in plot_positions:
+        for trace_dict in plot.get_traces():
+            fig.add_trace(
+                trace_dict["trace"],
+                secondary_y=trace_dict["secondary_y"],
+                row=row,
+                col=col,
+            )
+
+            # update axes layout if specifed
+            if plot.get_x_axes_layout(row, col) is not None:
+                fig.update_xaxes(**plot.get_x_axes_layout(row, col))
+
+            if plot.get_y_axes_layout(row, col) is not None:
+                fig.update_yaxes(**plot.get_y_axes_layout(row, col))
+
+            # Set consistent y-axis ranges for both primary and secondary y-axes
+            fig.update_yaxes(
+                range=[0, max_bar_height],
+                row=row,
+                col=col,
+                secondary_y=True if primary_y == "fraction" else False,
+            )  # For fraction of observations
+            fig.update_yaxes(
+                range=[0, max_event_rate_height],
+                row=row,
+                col=col,
+                secondary_y=True if primary_y == "event_rate" else False,
+            )  # For event rate
+
+            # TODO: this is a quick fix -- SHOULD BE FIXED
+            # set title for secondary y-axis
+            fig.layout[primary_y].title.text = y_title or (
+                "Fraction of Observations" if primary_y == "fraction" else "Event Rate"
+            )
+            fig.layout[secondary_y].title.text = secondary_y_title or (
+                "Event Rate" if primary_y == "fraction" else "Fraction of Observations"
+            )
+            # After all the traces are added, update the legend font size
+            fig.update_layout(legend=dict(font=dict(size=legend_font_size)))
+
+    # show the figure
+    return fig
 
 
 # Map
@@ -212,7 +304,7 @@ if __name__ == "__main__":
     # Create two dataframes with slightly different distributions
     df = pd.DataFrame(
         {
-            "feature": np.concatenate(
+            "predictor": np.concatenate(
                 [
                     np.random.normal(0, 1, n_samples // 2),  # First half
                     np.random.normal(2, 1, n_samples // 2),  # Second half
@@ -232,10 +324,18 @@ if __name__ == "__main__":
     plot = build_split_bin_event_rate_plot(
         df_top=df.loc[df["split"] == 1],
         df_bottom=df.loc[df["split"] == 0],
-        feature_col="feature",
+        feature_col="predictor",
         target="target",
-        bins=[0, 1, 2, 3, 4],
+        bins=[0, 1, 2, 3, 4, 5],
+        top_x_title="Predictor for Split 1",
+        bottom_x_title="Predictor for Split 0",
         colors=PlotColors(),
+        tick_font_size=18,
+        title_font_size=18,
+        legend_font_size=18,
+        fillna_event_rate=False,
+        primary_y="event_rate",
+        title_standoff=10,
     )
 
     plot.show()

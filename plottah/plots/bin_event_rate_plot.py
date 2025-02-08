@@ -360,16 +360,39 @@ class BinEventRatePlot(PlotProtocol):
     )
 
     # set default titles; can hide if not needed
+    primary_y: Literal["fraction", "event_rate"] = field(
+        default_factory=lambda: "fraction"
+    )
     show_legend: bool = field(default_factory=lambda: True)
     tick_font_size: int = field(default_factory=lambda: 10)
     title_font_size: int = field(default_factory=lambda: 12)
     x_title: str = field(default_factory=lambda: None)
-    y_title: str = field(default_factory=lambda: "Fraction of Observations")
-    secondary_y_title: str = field(default_factory=lambda: "Event Rate")
+    y_title: str | None = field(default_factory=lambda: None)
+    secondary_y_title: str | None = field(default_factory=lambda: None)
+    title_standoff: int = field(default_factory=lambda: 5)
 
     # max bar height and event rate height
     max_bar_height: float | None = field(default_factory=lambda: None)
     max_event_rate_height: float | None = field(default_factory=lambda: None)
+    fillna_event_rate: bool = field(
+        default_factory=lambda: True
+    )  # used if no samples in a bin; i.e., divide by 0
+
+    def __post_init__(self):
+        # Set default y-axis titles if not provided
+        if self.y_title is None:
+            self.y_title = (
+                "Fraction of Observations"
+                if self.primary_y == "fraction"
+                else "Event Rate"
+            )
+
+        if self.secondary_y_title is None:
+            self.secondary_y_title = (
+                "Event Rate"
+                if self.primary_y == "fraction"
+                else "Fraction of Observations"
+            )
 
     def _adjust_n_bins(self, df: pd.DataFrame, feature_col: str, n_bins: int) -> int:
         """Adjust n_bins if less unique values exist"""
@@ -383,7 +406,7 @@ class BinEventRatePlot(PlotProtocol):
         return n_bins
 
     def _get_event_rate_and_size_per_bin_df(
-        self, df: pd.DataFrame, feature_col: str, target_col: str
+        self, df: pd.DataFrame, feature_col: str, target_col: str, fillna: bool = True
     ) -> pd.DataFrame:
         """Calculate event rate and population size for each bin.
 
@@ -402,12 +425,12 @@ class BinEventRatePlot(PlotProtocol):
                 - {target_col}_mean: Mean of target variable (event rate) in bin
         """
         # Group by bins and calculate metrics
-        # observed=False includes empty bins in output
-        event_rate_and_size_per_bin_df = (
-            df.groupby("bins", observed=False)
-            .agg({feature_col: [len], target_col: ["mean"]})
-            .fillna(0)
+        event_rate_and_size_per_bin_df = df.groupby("bins", observed=False).agg(
+            {feature_col: [len], target_col: ["mean"]}
         )
+
+        if fillna:
+            event_rate_and_size_per_bin_df = event_rate_and_size_per_bin_df.fillna(0)
 
         # Convert multi-level column names to single level
         # e.g. (feature, len) -> feature_len
@@ -435,7 +458,7 @@ class BinEventRatePlot(PlotProtocol):
         event_rate_and_size_per_bin_df[f"{feature_col}_frac"] = (
             event_rate_and_size_per_bin_df[f"{feature_col}_len"]
             / event_rate_and_size_per_bin_df[f"{feature_col}_len"].sum()
-        ).fillna(0)
+        )
 
         # set max bar height and event rate height
         self.max_bar_height = event_rate_and_size_per_bin_df[
@@ -446,6 +469,73 @@ class BinEventRatePlot(PlotProtocol):
         ].max()
 
         return event_rate_and_size_per_bin_df
+
+    def _get_bar_trace(self, is_primary_y: bool) -> Dict:
+        return {
+            "trace": go.Bar(
+                x=self.labels,
+                y=self.event_rate_and_size_per_bin_df[f"{self.feature_col}_frac"],
+                marker_color=self.colors.get_rgba("secondary_color", opacity=0.1),
+                marker_line_color=self.colors.get_rgba("secondary_color"),
+                marker_line_width=1.5,
+                opacity=0.6,
+                showlegend=False,
+                hoverinfo=self.hoverinfo,
+            ),
+            # share y
+            "secondary_y": not is_primary_y,
+        }
+
+    def _get_event_rate_trace(self, is_primary_y: bool) -> Dict:
+        return {
+            "trace": go.Scatter(
+                x=self.labels,
+                y=self.event_rate_and_size_per_bin_df[f"{self.target_col}_mean"],
+                mode="lines+markers",
+                line=dict(
+                    color=self.colors.get_rgba(),
+                    width=1,
+                ),
+                hoverinfo=self.hoverinfo,
+                name="Event Rate",
+                showlegend=self.show_legend,
+            ),
+            # share y
+            "secondary_y": not is_primary_y,
+        }
+
+    def _get_general_event_rate_trace(self) -> Dict:
+        return {
+            "trace": go.Scatter(
+                x=self.labels,
+                y=[self.event_rate] * len(self.labels),
+                mode="lines",
+                line=dict(
+                    color=self.colors.get_grey_rgba(),
+                    dash="dash",
+                    width=1,
+                ),
+                hoverinfo=self.hoverinfo,
+                name=f"General Event Rate: ({'{:.1%}'.format(self.event_rate)})",
+                showlegend=self.show_legend,
+            ),
+            # share y
+            "secondary_y": True,
+        }
+
+    def _get_primary_y_trace(self) -> Dict:
+        return (
+            self._get_bar_trace(is_primary_y=True)
+            if self.primary_y == "fraction"
+            else self._get_event_rate_trace(is_primary_y=True)
+        )
+
+    def _get_secondary_y_trace(self) -> Dict:
+        return (
+            self._get_event_rate_trace(is_primary_y=False)
+            if self.primary_y == "fraction"
+            else self._get_bar_trace(is_primary_y=False)
+        )
 
     def do_math(
         self,
@@ -505,61 +595,20 @@ class BinEventRatePlot(PlotProtocol):
 
         # Calculate event rate and size for each bin. This will be used to plot the bar chart and event rate line
         self.event_rate_and_size_per_bin_df = self._get_event_rate_and_size_per_bin_df(
-            self.df, self.feature_col, self.target_col
+            df=self.df,
+            feature_col=self.feature_col,
+            target_col=self.target_col,
+            fillna=self.fillna_event_rate,
         )
 
     def get_traces(self) -> List[Dict]:
         return [
-            # plot bar chart
-            {
-                "trace": go.Bar(
-                    x=self.labels,
-                    y=self.event_rate_and_size_per_bin_df[f"{self.feature_col}_frac"],
-                    marker_color=self.colors.get_rgba("secondary_color", opacity=0.1),
-                    marker_line_color=self.colors.get_rgba("secondary_color"),
-                    marker_line_width=1.5,
-                    opacity=0.6,
-                    showlegend=False,
-                    hoverinfo=self.hoverinfo,
-                ),
-                # share y
-                "secondary_y": False,
-            },
+            # plot bar chart or event rate, depending on primary_y
+            self._get_primary_y_trace(),
             # plot binned event rate baseline
-            {
-                "trace": go.Scatter(
-                    x=self.labels,
-                    y=[self.event_rate] * len(self.labels),
-                    mode="lines",
-                    line=dict(
-                        color=self.colors.get_grey_rgba(),
-                        dash="dash",
-                        width=1,
-                    ),
-                    hoverinfo=self.hoverinfo,
-                    name=f"General Event Rate: ({'{:.1%}'.format(self.event_rate)})",
-                    showlegend=self.show_legend,
-                ),
-                # share y
-                "secondary_y": True,
-            },
-            # plot binned event rate
-            {
-                "trace": go.Scatter(
-                    x=self.labels,
-                    y=self.event_rate_and_size_per_bin_df[f"{self.target_col}_mean"],
-                    mode="lines+markers",
-                    line=dict(
-                        color=self.colors.get_rgba(),
-                        width=1,
-                    ),
-                    hoverinfo=self.hoverinfo,
-                    name="Event Rate",
-                    showlegend=self.show_legend,
-                ),
-                # share y
-                "secondary_y": True,
-            },
+            self._get_general_event_rate_trace(),
+            # plot binned event rate or bar chart, depending on primary_y
+            self._get_secondary_y_trace(),
         ]
 
     def get_x_axes_layout(self, row, col):
@@ -607,8 +656,8 @@ if __name__ == "__main__":
     # Create empty plotly figure using subplots, 2x2
     fig = make_subplots(
         rows=2,
-        cols=2,
-        specs=[[{"secondary_y": True}] * 2, [{"secondary_y": True}] * 2],
+        cols=1,
+        specs=[[{"secondary_y": True}] * 1, [{"secondary_y": True}] * 1],
         horizontal_spacing=0.1,  # Adjust space between columns (default is 0.2)
         vertical_spacing=0.15,
     )
@@ -682,7 +731,7 @@ if __name__ == "__main__":
                     br.max_bar_height,
                 ]
             )
-            * 10
+            * 11
         )
         / 10
     )
@@ -696,7 +745,7 @@ if __name__ == "__main__":
                     br.max_event_rate_height,
                 ]
             )
-            * 10
+            * 11
         )
         / 10
     )
