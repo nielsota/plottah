@@ -1,9 +1,8 @@
-from typing import Literal
+from typing import Callable, Literal, Sequence
 
-import pandas as pd
-from loguru import logger
-from plotly.graph_objects import Figure
-from plotly.subplots import make_subplots
+import pandas as pd  # type: ignore
+from plotly.graph_objects import Figure  # type: ignore
+from plotly.subplots import make_subplots  # type: ignore
 
 from plottah.colors import PlotColors
 from plottah.plot_handler import PlotHandler
@@ -20,18 +19,46 @@ def build_standard_numerical_univariate_plot(
     df: pd.DataFrame,
     feature_col: str,
     target: str,
-    feature_type: str = "float",
+    feature_type: Literal["categorical", "numerical"] = "numerical",
     colors: PlotColors = PlotColors(),
     hoverinfo: Literal["all", "none", "skip"] = "all",
     n_bins: int = 10,
-    bins: list[int | float | str] | None = None,
-    specs: list[list[dict]] | None = None,
+    bins: Sequence[int | float | str] | None = None,
+    specs: Sequence[Sequence[dict]] | None = None,
     **kwargs,
 ) -> PlotHandler:
     """
-    buils standard univariate plot from days 'ye
+    Build a standard numerical univariate plot consisting of ROC Curve, Distribution Plot, and Bin Event Rate Plot.
+
+    This function compiles various subplots into a comprehensive plot that visualizes the relationship between a numerical feature and a target variable.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        The dataframe containing the data to plot.
+    feature_col : str
+        The name of the feature column to analyze.
+    target : str
+        The name of the target column.
+    feature_type : Literal["categorical", "numerical"], optional
+        The type of the feature, by default "numerical".
+    colors : PlotColors, optional
+        An instance of `PlotColors` to define the color scheme, by default `PlotColors()`.
+    hoverinfo : Literal["all", "none", "skip"], optional
+        Defines the hover information behavior, by default "all".
+    n_bins : int, optional
+        The number of bins to use for the Bin Event Rate Plot, by default 10.
+    bins : Sequence[int | float | str] | None, optional
+        Custom bin edges. If `None`, bins will be determined automatically, by default None.
+    specs : Sequence[Sequence[dict]] | None, optional
+        Custom layout specifications for the subplots. If `None`, default specifications are used, by default None.
+    **kwargs
+        Additional keyword arguments, such as `distplot_q_min` and `distplot_q_max`.
 
     Returns
+    -------
+    PlotHandler
+        An instance of `PlotHandler` containing the assembled plot.
     """
 
     # unpack the keyword arguments
@@ -88,14 +115,42 @@ def build_standard_categorical_univariate_plot(
     colors: PlotColors = PlotColors(),
     hoverinfo: Literal["all", "none", "skip"] = "all",
     n_bins: int = 10,
-    bins: list[int | float | str] | None = None,
-    specs: list[list[dict]] | None = None,
+    bins: Sequence[int | float | str] | None = None,
+    specs: Sequence[Sequence[dict]] | None = None,
     **kwargs,
 ) -> PlotHandler:
     """
-    buils standard univariate plot from days 'ye
+    Build a standard categorical univariate plot consisting of Bin Event Rate Plot.
+
+    This function creates a plot that visualizes the event rates across different categories of a categorical feature.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        The dataframe containing the data to plot.
+    feature_col : str
+        The name of the categorical feature column to analyze.
+    target : str
+        The name of the target column.
+    feature_type : Literal["categorical", "numerical"], optional
+        The type of the feature, by default "categorical".
+    colors : PlotColors, optional
+        An instance of `PlotColors` to define the color scheme, by default `PlotColors()`.
+    hoverinfo : Literal["all", "none", "skip"], optional
+        Defines the hover information behavior, by default "all".
+    n_bins : int, optional
+        The number of bins to use for the Bin Event Rate Plot, by default 10.
+    bins : Sequence[int | float | str] | None, optional
+        Custom bin edges. If `None`, bins will be determined automatically, by default None.
+    specs : Sequence[Sequence[dict]] | None, optional
+        Custom layout specifications for the subplot. If `None`, default specifications are used, by default None.
+    **kwargs
+        Additional keyword arguments.
 
     Returns
+    -------
+    PlotHandler
+        An instance of `PlotHandler` containing the assembled plot.
     """
 
     # create plot and do math
@@ -130,7 +185,7 @@ def build_split_bin_event_rate_plot(
     df_bottom: pd.DataFrame,
     feature_col: str,
     target: str,
-    bins: list[float],
+    bins: Sequence[int | float | str],
     top_x_title: str,
     bottom_x_title: str,
     feature_type: Literal["numerical", "categorical"] = "numerical",
@@ -147,9 +202,55 @@ def build_split_bin_event_rate_plot(
     fillna_event_rate: bool = True,
 ) -> Figure:
     """
-    buils standard univariate plot from days 'ye
+    Build a split bin event rate plot with separate subplots for two different dataframes.
+
+    This function creates a Plotly figure with two subplots, each showing the event rates across specified bins for the top and bottom dataframes.
+
+    Parameters
+    ----------
+    df_top : pd.DataFrame
+        The top dataframe containing the data to plot.
+    df_bottom : pd.DataFrame
+        The bottom dataframe containing the data to plot.
+    feature_col : str
+        The name of the feature column to analyze.
+    target : str
+        The name of the target column.
+    bins : Sequence[int | float | str]
+        The bin edges to use for the event rate plots.
+    top_x_title : str
+        The title for the x-axis of the top subplot.
+    bottom_x_title : str
+        The title for the x-axis of the bottom subplot.
+    feature_type : Literal["numerical", "categorical"], optional
+        The type of the feature, by default "numerical".
+    colors : PlotColors, optional
+        An instance of `PlotColors` to define the color scheme, by default `PlotColors()`.
+    hoverinfo : str, optional
+        Defines the hover information behavior, by default "all".
+    horizontal_spacing : float, optional
+        The horizontal spacing between subplots, by default 0.1.
+    vertical_spacing : float, optional
+        The vertical spacing between subplots, by default 0.15.
+    tick_font_size : int, optional
+        The font size for the tick labels, by default 12.
+    title_font_size : int, optional
+        The font size for the titles, by default 14.
+    legend_font_size : int, optional
+        The font size for the legend text, by default 12.
+    y_title : str | None, optional
+        The title for the primary y-axis, by default None.
+    secondary_y_title : str | None, optional
+        The title for the secondary y-axis, by default None.
+    title_standoff : int, optional
+        The distance of the title from the axis, by default 5.
+    fillna_event_rate : bool, optional
+        Whether to fill NaN values in the event rate, by default True.
 
     Returns
+    -------
+    Figure
+        A Plotly `Figure` object containing the assembled split bin event rate plots.
     """
 
     # Create empty plotly figure using subplots, 2x2
@@ -160,8 +261,6 @@ def build_split_bin_event_rate_plot(
         horizontal_spacing=horizontal_spacing,
         vertical_spacing=vertical_spacing,
     )
-
-    fig.print_grid()
 
     # create the plots
     top_plot = BinEventRatePlot(
@@ -260,8 +359,8 @@ def build_split_bin_event_rate_plot(
     return fig
 
 
-# Map
-PLOT_BUILDERS_DICT = {
+SinglePlotCallable = Callable[..., PlotHandler | Figure]
+PLOT_BUILDERS_DICT: dict[str, SinglePlotCallable] = {
     "categorical": build_standard_categorical_univariate_plot,
     "numerical": build_standard_numerical_univariate_plot,
     "split_bin_event_rate": build_split_bin_event_rate_plot,
@@ -269,8 +368,8 @@ PLOT_BUILDERS_DICT = {
 
 
 if __name__ == "__main__":
-    import numpy as np
-    import pandas as pd
+    import numpy as np  # type: ignore
+    import pandas as pd  # type: ignore
 
     from plottah.colors import PlotColors
 
@@ -304,8 +403,8 @@ if __name__ == "__main__":
         feature_col="predictor",
         target="target",
         bins=[0, 1, 2, 3, 4, 5],
-        top_x_title="Predictor for Split 1",
-        bottom_x_title="Predictor for Split 0",
+        top_x_title="Predictor for (split == 1)",
+        bottom_x_title="Predictor for (split == 0)",
         colors=PlotColors(),
         tick_font_size=18,
         title_font_size=18,

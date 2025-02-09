@@ -2,9 +2,9 @@ import pathlib
 from dataclasses import dataclass, field
 from typing import Protocol
 
-import pandas as pd
-from loguru import logger
-from plotly.subplots import make_subplots
+import pandas as pd  # type: ignore
+from loguru import logger  # type: ignore
+from plotly.subplots import make_subplots  # type: ignore
 
 from plottah.plots import PlotProtocol
 
@@ -85,9 +85,11 @@ class PlotHandler:
         [(x1, y1 & y2), (None, None)],
         [(x2, y3), (x3, y4)]
 
-        This last option means that we cannot simply use the row and column number to map to xref - the 2,1 element does not always map to x3.
+        This last option means that we cannot simply use the row and column number to map to xref
+        - the 2,1 element does not always map to x3.
 
-        This post init method uses the specs to obtain a map from the position of the subplot to what x and y ref it should use.
+        This post init method uses the specs to obtain a map from the position of the subplot to
+        what x and y ref it should use.
 
         """
         # check if default spec was used
@@ -209,7 +211,9 @@ class PlotHandler:
         # update secondary y_axis if applicable
         if subplot.get_secondary_y_axis_title() is not None:
             logger.debug(f"Building secondary y-axes title for {self.feature_col}")
-            # name of axis contained in self.yaxes on index (row - 1, col - 1) is the primary axes, plotly will store the secondary yaxis one further; i.e. stored at index (row - 1 , col)
+            # name of axis contained in self.yaxes on index (row - 1, col - 1) is the primary axes,
+            # plotly will store the secondary yaxis one further; i.e. stored at index (row - 1 , col)
+            # TODO: define a function to get the secondary yaxis name and encapsulate this logic
             secondary_yaxis = self.yaxes[row - 1][col]
             logger.debug(f"Got secondary y-axes title for {self.feature_col}")
             self.fig.layout[
@@ -245,7 +249,9 @@ class PlotHandler:
         """
         if not self.default_spec:
             raise ValueError(
-                "build function only works for default specs, use build_subplot with each individual subplot for your specs"
+                "build function only works for default specs, "
+                "use build_subplot with each individual subplot "
+                "for your specs"
             )
 
         # do the math for each subplot

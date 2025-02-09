@@ -1,9 +1,8 @@
-import logging
-from typing import Literal, Tuple
+from typing import Literal
 
-import numpy as np
-import pandas as pd
-from loguru import logger
+import numpy as np  # type: ignore
+import pandas as pd  # type: ignore
+from loguru import logger  # type: ignore
 
 # TODO: seperate utils from binning
 NUMERICAL_BINS = list[int | float]
@@ -146,7 +145,7 @@ def generate_bins(
     return bins
 
 
-def get_min_max(df: pd.DataFrame, feature_col: str) -> Tuple[float, float]:
+def get_min_max(df: pd.DataFrame, feature_col: str) -> tuple[float, float]:
     """
     get min and max while ignoring nan values
 
@@ -160,7 +159,7 @@ def get_min_max(df: pd.DataFrame, feature_col: str) -> Tuple[float, float]:
     return (min_val, max_val)
 
 
-def get_min_max_adj(df: pd.DataFrame, feature_col: str) -> Tuple[float, float]:
+def get_min_max_adj(df: pd.DataFrame, feature_col: str) -> tuple[float, float]:
     """
     get min and max while ignoring nan values and possible +/- inf
 
@@ -184,7 +183,7 @@ def get_min_max_adj(df: pd.DataFrame, feature_col: str) -> Tuple[float, float]:
     return (min_val_adj, max_val_adj)
 
 
-def get_labels_from_bins(bins: NUMERICAL_BINS) -> list:
+def get_labels_from_bins(bins: NUMERICAL_BINS) -> list[str]:
     """
     Generate labels from bins. The precision (decimal places) is automatically determined
     to ensure all bin values are uniquely represented.
@@ -207,7 +206,7 @@ def get_labels_from_bins(bins: NUMERICAL_BINS) -> list:
     """
     precision = 0
     while len(bins) > len(np.unique(np.round(bins, precision))):
-        logging.debug(f"precision currently: {precision}")
+        logger.debug(f"precision currently: {precision}")
         precision += 1
 
     def _format_bin_value(value: float, precision: int) -> str:
@@ -256,8 +255,6 @@ def validate_feature_column_presence(df: pd.DataFrame, feature_col: str) -> bool
 
 
 if __name__ == "__main__":
-    from loguru import logger
-
     # Create sample data
     logger.info("Creating sample data...")
     df = pd.DataFrame(

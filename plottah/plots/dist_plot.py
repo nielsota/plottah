@@ -1,8 +1,8 @@
-import logging
 from dataclasses import dataclass, field
 
-import plotly.figure_factory as ff
-import plotly.graph_objects as go
+import plotly.figure_factory as ff  # type: ignore
+import plotly.graph_objects as go  # type: ignore
+from loguru import logger  # type: ignore
 
 from plottah.colors import PlotColors
 from plottah.plots.plot_protocol import PlotProtocol
@@ -40,7 +40,7 @@ class DistPlot(PlotProtocol):
         3. get the max density and feature value after imputing
         """
 
-        logging.info("Started math for DistPlot")
+        logger.info("Started math for DistPlot")
 
         # 1. impute/remove missing values
         self.df_imputed = remove_or_impute_nan_infs(
@@ -51,14 +51,18 @@ class DistPlot(PlotProtocol):
         if (self.distplot_q_min is not None) or (self.distplot_q_max is not None):
             # if only min OR max provided, set other to limit
             if self.distplot_q_min is None:
-                logging.warning(
-                    f"{feature_col} only has distplot_q_max ({self.distplot_q_max}) provided, so setting distplot_q_min to 0"
+                logger.warning(
+                    f"{feature_col} only has distplot_q_max "
+                    f"({self.distplot_q_max}) provided, "
+                    f"so setting distplot_q_min to 0"
                 )
                 self.distplot_q_min = 0.0
 
             if self.distplot_q_max is None:
-                logging.warning(
-                    f"{feature_col} only has distplot_q_min ({self.distplot_q_min}) provided, so setting distplot_q_max to 1"
+                logger.warning(
+                    f"{feature_col} only has distplot_q_min "
+                    f"({self.distplot_q_min}) provided, "
+                    f"so setting distplot_q_max to 1"
                 )
                 self.distplot_q_max = 1.0
 
@@ -78,7 +82,7 @@ class DistPlot(PlotProtocol):
             )
 
             if distinct_values < 2:
-                logging.warning(
+                logger.warning(
                     f"One group of {feature_col} only has {distinct_values} distinct values, "
                     f"this will cause erors. Please revise the quantiles used for clipping"
                 )

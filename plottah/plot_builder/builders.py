@@ -1,8 +1,8 @@
 import pathlib
 from collections import defaultdict
-from typing import Literal
+from typing import Literal, Sequence
 
-import numpy as np
+import pandas as pd  # type: ignore
 
 from plottah.colors import PlotColors
 from plottah.plot_builder.specific_builders import PLOT_BUILDERS_DICT
@@ -10,7 +10,7 @@ from plottah.plot_handler import PlotHandler
 
 
 def build_univariate_plot(
-    df,
+    df: pd.DataFrame,
     feature_col: str,
     target: str,
     feature_type: Literal["categorical", "numerical"] = "categorical",
@@ -64,9 +64,9 @@ def build_univariate_plots(
     target: str,
     feature_types: dict[str, Literal["categorical", "numerical"]],
     n_bins: dict[str, int] | None = None,
-    bins: dict[str, list[int | float | str]] | None = None,
-    distplot_q_min: dict[str, float] | None = None,
-    distplot_q_max: dict[str, float] | None = None,
+    bins: dict[str, Sequence[int | float | str]] | None = None,
+    distplot_q_min: dict[str, float | None] | None = None,
+    distplot_q_max: dict[str, float | None] | None = None,
     save_directory: pathlib.Path | None = None,
     colors: PlotColors = PlotColors(),
     show_plot: bool = False,
@@ -105,7 +105,7 @@ def build_univariate_plots(
 
     # create mapping from features to float if type not provided
     if feature_types is None:
-        feature_types = {feature: "float" for feature in features}
+        feature_types = {feature: "numerical" for feature in features}
 
     # test - need to return None if user did not provive q min for all features but only some
     if distplot_q_min is None:
@@ -154,8 +154,8 @@ def build_univariate_plots(
 
 
 if __name__ == "__main__":
-    import numpy as np
-    import pandas as pd
+    import numpy as np  # type: ignore
+    import pandas as pd  # type: ignore
 
     # generate some data
     df = pd.DataFrame(

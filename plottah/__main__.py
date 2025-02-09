@@ -1,7 +1,7 @@
 import argparse
 import logging
 
-import pandas as pd
+import pandas as pd  # type: ignore
 
 from plottah.colors import PlotColors
 from plottah.config import settings

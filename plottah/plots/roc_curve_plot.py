@@ -1,9 +1,9 @@
 import logging
 from dataclasses import dataclass, field
 
-import numpy as np
-import plotly.graph_objects as go
-from sklearn import metrics
+import numpy as np  # type: ignore
+import plotly.graph_objects as go  # type: ignore
+from sklearn import metrics  # type: ignore
 
 from plottah.colors import PlotColors
 from plottah.plots.plot_protocol import PlotProtocol

@@ -2,16 +2,16 @@ import re
 from pathlib import Path
 from typing import Optional
 
-import pandas as pd
-import yaml
-from pydantic import BaseModel, validator
+import pandas as pd  # type: ignore
+import yaml  # type: ignore
+from pydantic import BaseModel, validator  # type: ignore
 
 # use this over Literal to make custom error containing more info
 ALLOWED_TYPES = ["float", "int", "categorical"]
 ROOT_DIR = Path(__file__).parent.parent
 
 
-def parse_from_yaml(path_to_yaml):
+def parse_from_yaml(path_to_yaml: str) -> dict:
     """
     ability to parse config.yaml
     """
@@ -22,11 +22,11 @@ def parse_from_yaml(path_to_yaml):
     return config
 
 
-def is_in_unit_interval(number):
+def is_in_unit_interval(number: float) -> bool:
     return 0 <= number <= 1
 
 
-def validate_color_string(color_string):
+def validate_color_string(color_string: str) -> bool:
     pattern = r"^\d{1,3},\s?\d{1,3},\s?\d{1,3}$"
     return re.match(pattern, color_string) is not None
 
@@ -44,7 +44,7 @@ class FeatureSchema(BaseModel):
         frozen = True
 
     @validator("type")
-    def validate_type(cls, v, values):
+    def validate_type(cls, v: str, values: dict) -> str:
         if v not in ALLOWED_TYPES:
             raise ValueError(
                 f'Type for {values["name"]} must be in {ALLOWED_TYPES}, you passed type: {v}'
@@ -52,14 +52,14 @@ class FeatureSchema(BaseModel):
         return v
 
     @validator("bins")
-    def validate_bins_and_nbins(cls, bins, values):
+    def validate_bins_and_nbins(cls, bins: list[int], values: dict) -> list[int]:
         if len(bins) != values["n_bins"]:
             values["n_bins"] = len(bins)
             print(f'setting n_bins for {values["name"]} to {len(bins)} based on bins')
         return bins
 
     @validator("distplot_q_min")
-    def validate_distplot_q_min(cls, v, values):
+    def validate_distplot_q_min(cls, v: float, values: dict) -> float:
         # check the type
         if not isinstance(v, float):
             raise ValueError(
@@ -74,7 +74,7 @@ class FeatureSchema(BaseModel):
         return v
 
     @validator("distplot_q_max")
-    def validate_distplot_q_max(cls, v, values):
+    def validate_distplot_q_max(cls, v: float, values: dict) -> float:
         # check the type
         if not isinstance(v, float):
             raise ValueError(
@@ -107,9 +107,11 @@ class Settings(BaseModel):
     grey_tint_color: str
 
     @validator("file_path", "images_output_path", pre=True)
-    def path_must_exist(cls, v):
+    def path_must_exist(cls, v: Path) -> Path:
         """
-        validates path specified in config. the path/file must exist before the code can execute the ensure valid reading and writing locations exist
+        validates path specified in config. the path/file must exist before the code
+        can execute the ensure valid reading and writing locations exist. This ensures
+        we have valid paths before attempting any file operations.
         """
 
         if not isinstance(v, Path):
@@ -122,9 +124,11 @@ class Settings(BaseModel):
         return v
 
     @validator("powerpoint_output_path")
-    def parent_dir_must_exist(cls, v):
+    def parent_dir_must_exist(cls, v: Path) -> Path:
         """
-        validates path specified in config. the path/file must exist before the code can execute the ensure valid reading and writing locations exist
+        validates path specified in config. the path/file must exist before the code
+        can execute the ensure valid reading and writing locations exist. This ensures
+        we have valid paths before attempting any file operations.
         """
 
         if not isinstance(v, Path):
@@ -166,7 +170,9 @@ class Settings(BaseModel):
         for feature in v:
             if feature.name not in sample_df.columns:
                 raise ValueError(
-                    f"Column: {feature} does not exist is dataframe \n Please ensure the config.yaml contains only valid columns"
+                    f"Column: {feature} does not exist is dataframe \n"
+                    f"Please ensure the config.yaml contains only "
+                    f"valid columns"
                 )
 
         return v
@@ -184,7 +190,9 @@ class Settings(BaseModel):
 
         if v not in sample_df.columns:
             raise ValueError(
-                f"Column: {v} does not exist is dataframe \n Please ensure the config.yaml contains only valid columns"
+                f"Column: {v} does not exist is dataframe \n"
+                f"Please ensure the config.yaml contains "
+                f"only valid columns"
             )
         return v
 

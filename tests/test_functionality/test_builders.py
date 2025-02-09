@@ -31,7 +31,8 @@ def return_settings():
 def test_main(return_settings):
     config = return_settings.copy()
 
-    # settings will not accept None for output path, but build_univariate_plots will. When passed None to build_univariate_plots, result is that output is not saved
+    # settings will not accept None for output path, but build_univariate_plots will.
+    # When passed None to build_univariate_plots, result is that output is not saved
     settings = Settings(**config)
     settings.images_output_path = None
 
@@ -48,9 +49,9 @@ def test_main(return_settings):
 
     # create mapping from feature name to binning
     bins = {
-        feature_schema.name: feature_schema.bins
-        if feature_schema.bins is not None
-        else None
+        feature_schema.name: (
+            feature_schema.bins if feature_schema.bins is not None else None
+        )
         for feature_schema in settings.features
     }
 
@@ -62,9 +63,9 @@ def test_main(return_settings):
 
     # create mapping from feature name to feature type
     feature_types = {
-        feature_schema.name: feature_schema.type
-        if feature_schema.type is not None
-        else "float"
+        feature_schema.name: (
+            feature_schema.type if feature_schema.type is not None else "float"
+        )
         for feature_schema in settings.features
     }
 
@@ -84,7 +85,8 @@ def test_build_univariate_plot(return_settings):
     # retrieve settings
     config = return_settings.copy()
 
-    # settings will not accept None for output path, but build_univariate_plots will. When passed None to build_univariate_plots, result is that output is not saved
+    # settings will not accept None for output path, but build_univariate_plots will.
+    # When passed None to build_univariate_plots, result is that output is not saved
     settings = Settings(**config)
     settings.images_output_path = None
 
@@ -108,3 +110,5 @@ def test_build_univariate_plot(return_settings):
         specs=None,
         hoverinfo="none",
     )
+
+    assert fig is not None

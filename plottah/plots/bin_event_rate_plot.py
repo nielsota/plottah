@@ -1,10 +1,10 @@
 from dataclasses import dataclass, field
 from typing import Callable, Dict, List, Literal
 
-import numpy as np
-import pandas as pd
-import plotly.graph_objects as go
-from loguru import logger
+import numpy as np  # type: ignore
+import pandas as pd  # type: ignore
+import plotly.graph_objects as go  # type: ignore
+from loguru import logger  # type: ignore
 
 from plottah.colors import PlotColors
 from plottah.plots.plot_protocol import PlotProtocol
@@ -16,7 +16,7 @@ from plottah.utils import (
     validate_feature_column_presence,
 )
 
-MIN_N_UNIQUE = 25
+MIN_N_UNIQUE = 3
 NUMERICAL_BINS = list[int | float]
 
 
@@ -134,7 +134,8 @@ class StandardBinner:
         lowest_bin = bins[0]
         highest_bin = bins[n_bins - 1]
 
-        # set first and last value back to min and max before imputing - could lead to duplicate bins if min/max already a bin so remove duplicates
+        # set first and last value back to min and max before imputing - could lead to duplicate
+        # bins if min/max already a bin so remove duplicates
         if min_val < lowest_bin:
             logger.warning(
                 f"For feature {feature_col} you provided custom bins, "
@@ -313,7 +314,9 @@ def _verify_categorical_binner_eligibility(
     """Verify if the CategoricalBinner is eligible for the given dataframe and feature column."""
     if df[feature_col].nunique() > n_bins:
         raise ValueError(
-            f"Too many unique values for feature: {feature_col} ({df[feature_col].nunique()}) to only use {n_bins} bins. Increase n_bins to at least {df[feature_col].nunique()}!"
+            f"Too many unique values for feature: {feature_col} "
+            f"({df[feature_col].nunique()}) to only use {n_bins} bins. "
+            f"Increase n_bins to at least {df[feature_col].nunique()}!"
         )
     return True
 
@@ -324,15 +327,14 @@ def _verify_standard_binner_eligibility(
     """Verify if the StandardBinner is eligible for the given dataframe and feature column."""
     if df[feature_col].nunique() < MIN_N_UNIQUE:
         logger.warning(
-            f"{feature_col} only has {df[feature_col].nunique()} distinct values, consider switching feature type for {feature_col} to categorical)"
+            f"{feature_col} only has {df[feature_col].nunique()} distinct values, "
+            f"consider switching feature type for {feature_col} "
+            f"to categorical)"
         )
     return True
 
 
 def get_binner_verifier(
-    df: pd.DataFrame,
-    feature_col: str,
-    n_bins: int,
     feature_type: Literal["categorical", "float"],
 ) -> Callable:
     logger.debug(f"Verifying binner eligibility for feature type: {feature_type}")
@@ -551,9 +553,8 @@ class BinEventRatePlot(PlotProtocol):
         self.n_bins = self._adjust_n_bins(self.df, self.feature_col, self.n_bins)
 
         # get binner and verifier
-        binner = get_binner(self.feature_type)
-        binner_verifier = get_binner_verifier(
-            self.df, self.feature_col, self.n_bins, self.feature_type
+        binner, binner_verifier = get_binner(self.feature_type), get_binner_verifier(
+            self.feature_type
         )
 
         # verify binner eligibility
@@ -631,8 +632,8 @@ if __name__ == "__main__":
     # Create empty plotly figure using subplots, 2x2
     fig = make_subplots(
         rows=2,
-        cols=1,
-        specs=[[{"secondary_y": True}] * 1, [{"secondary_y": True}] * 1],
+        cols=2,
+        specs=[[{"secondary_y": True}] * 2, [{"secondary_y": True}] * 2],
         horizontal_spacing=0.1,  # Adjust space between columns (default is 0.2)
         vertical_spacing=0.15,
     )
