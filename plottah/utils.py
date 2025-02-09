@@ -6,7 +6,7 @@ import pandas as pd
 from loguru import logger
 
 # TODO: seperate utils from binning
-NUMERICAL_BINS = list[int, float]
+NUMERICAL_BINS = list[int | float]
 
 
 def quantile_clipping(

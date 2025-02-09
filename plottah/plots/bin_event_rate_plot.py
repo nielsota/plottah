@@ -17,7 +17,7 @@ from plottah.utils import (
 )
 
 MIN_N_UNIQUE = 25
-NUMERICAL_BINS = list[int, float]
+NUMERICAL_BINS = list[int | float]
 
 
 # TODO: binning should be in a seperate file - gotten too large
@@ -29,7 +29,7 @@ class CategoricalBinner:
         2. Returning labels based on bins
     """
 
-    _labels: list = field(default_factory=lambda: None)
+    _labels: list[str] | None = field(default_factory=lambda: None)
 
     def get_labels(self):
         return self._labels.copy()
@@ -93,7 +93,7 @@ class StandardBinner:
         2. Returning labels based on bins
     """
 
-    _labels: list = field(default_factory=lambda: None)
+    _labels: list[str | float | int] | None = field(default_factory=lambda: None)
 
     def _remove_duplicate_bins_preserve_order(
         self, bins: NUMERICAL_BINS
@@ -243,7 +243,7 @@ class StandardBinner:
         n_bins: int,
         bins: NUMERICAL_BINS | None = None,
         method: Literal["quantile", "linear"] = "quantile",
-    ) -> pd.DataFrame:
+    ) -> tuple[pd.DataFrame, list[str | float | int]]:
         """Add bins to dataframe.
 
         Examples:
@@ -348,7 +348,7 @@ class BinEventRatePlot(PlotProtocol):
     colors: PlotColors = field(default_factory=lambda: PlotColors())
 
     # set (number of) bins
-    bins: list = field(default_factory=lambda: None)
+    bins: list[int | float | str] | None = field(default_factory=lambda: None)
     n_bins: int = field(default_factory=lambda: 10)
 
     # set hover setting
@@ -363,14 +363,14 @@ class BinEventRatePlot(PlotProtocol):
     show_legend: bool = field(default_factory=lambda: True)
     tick_font_size: int = field(default_factory=lambda: 10)
     title_font_size: int = field(default_factory=lambda: 12)
-    x_title: str = field(default_factory=lambda: None)
+    x_title: str | None = field(default_factory=lambda: None)
     y_title: str | None = field(default_factory=lambda: None)
     secondary_y_title: str | None = field(default_factory=lambda: None)
     title_standoff: int = field(default_factory=lambda: 5)
 
     # max bar height and event rate height
-    max_bar_height: float | None = field(default_factory=lambda: None)
-    max_event_rate_height: float | None = field(default_factory=lambda: None)
+    max_bar_height: float = field(default_factory=lambda: np.nan)
+    max_event_rate_height: float = field(default_factory=lambda: np.nan)
     fillna_event_rate: bool = field(
         default_factory=lambda: True
     )  # used if no samples in a bin; i.e., divide by 0
@@ -517,7 +517,7 @@ class BinEventRatePlot(PlotProtocol):
         df: pd.DataFrame,
         feature_col: str,
         target_col: str,
-        method: str = "quantile",
+        method: Literal["quantile", "linear"] = "quantile",
     ):
         """
         does the required math to generate the traces, annotations and axes for the roc-curve plot
@@ -712,7 +712,7 @@ if __name__ == "__main__":
     )
     max_event_rate_height = (
         np.ceil(
-            max(
+            np.max(
                 [
                     tl.max_event_rate_height,
                     tr.max_event_rate_height,
@@ -763,3 +763,15 @@ if __name__ == "__main__":
 
     # show the figure
     fig.show()
+
+
+def _get_max_bar_height(plots: list[BinEventRatePlot]) -> float:
+    max_bar_height = np.nanmax([plot.max_bar_height for plot in plots])
+    logger.debug(f"max_bar_height: {max_bar_height}")
+    return np.ceil(max_bar_height * 11) / 10
+
+
+def _get_max_event_rate_height(plots: list[BinEventRatePlot]) -> float:
+    max_event_rate_height = np.nanmax([plot.max_event_rate_height for plot in plots])
+    logger.debug(f"max_event_rate_height: {max_event_rate_height}")
+    return np.ceil(max_event_rate_height * 11) / 10

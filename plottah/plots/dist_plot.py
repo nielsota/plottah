@@ -18,8 +18,8 @@ class DistPlot(PlotProtocol):
     hoverinfo: str = field(default_factory=lambda: "skip")
 
     # default to no quantile clipping
-    distplot_q_min: float = field(default_factory=lambda: None)
-    distplot_q_max: float = field(default_factory=lambda: None)
+    distplot_q_min: float | None = field(default_factory=lambda: None)
+    distplot_q_max: float | None = field(default_factory=lambda: None)
 
     # set default titles; can hide if not needed
     tick_font_size: int = field(default_factory=lambda: 10)
@@ -79,7 +79,8 @@ class DistPlot(PlotProtocol):
 
             if distinct_values < 2:
                 logging.warning(
-                    f"One group of {feature_col} only has {self.distinct_values} distinct values, this will cause erors. Please revise the quantiles used for clipping"
+                    f"One group of {feature_col} only has {distinct_values} distinct values, "
+                    f"this will cause erors. Please revise the quantiles used for clipping"
                 )
 
         # 2. extract traces from the distplot function from plotly

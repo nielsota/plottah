@@ -1,13 +1,11 @@
 import argparse
 import logging
-import pathlib
-from datetime import datetime
 
 import pandas as pd
 
 from plottah.colors import PlotColors
 from plottah.config import settings
-from plottah.plot_builder import build_powerpoint, build_univariate_plots
+from plottah.plot_builder import build_univariate_plots
 
 parser = argparse.ArgumentParser(description="Run the univariate analyses workflow")
 logging.basicConfig(level=logging.WARN)
@@ -17,7 +15,6 @@ def main():
     # parse command line arguments
     parser.add_argument(
         "-p",
-        "--build_powerpoint",
         nargs="?",
         const=1,
         type=int,
@@ -25,9 +22,6 @@ def main():
         choices=[0, 1],
         help="Specify whether you would like to automatically add figures to a powerpoint",
     )
-
-    args = parser.parse_args()
-    build_pp = args.build_powerpoint
 
     # set color palette to use
     color_palette = PlotColors(
@@ -95,19 +89,6 @@ def main():
         distplot_q_max=distplot_q_max,
         distplot_q_min=distplot_q_min,
     )
-
-    if build_pp:
-        now = datetime.now()
-        current_time = now.strftime("%d_%m_%Y_%H_%M_%S")
-        save_path = pathlib.Path(
-            f"./data/powerpoints/univariate_analyses_{current_time}.pptx"
-        ).resolve()
-        print(f"Building output powerpoint in location {save_path}")
-        build_powerpoint(
-            fig_locs=fig_locs,
-            feature_names=features,
-            save_path=save_path,
-        )
 
 
 if __name__ == "__main__":

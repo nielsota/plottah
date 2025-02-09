@@ -8,6 +8,10 @@ from plotly.subplots import make_subplots
 from plottah.colors import PlotColors
 from plottah.plot_handler import PlotHandler
 from plottah.plots import BinEventRatePlot, DistPlot, RocCurvePlot
+from plottah.plots.bin_event_rate_plot import (
+    _get_max_bar_height,
+    _get_max_event_rate_height,
+)
 
 #### Responsibility: put together specific Plots and Handlers into graphs
 
@@ -18,10 +22,10 @@ def build_standard_numerical_univariate_plot(
     target: str,
     feature_type: str = "float",
     colors: PlotColors = PlotColors(),
-    hoverinfo="all",
+    hoverinfo: Literal["all", "none", "skip"] = "all",
     n_bins: int = 10,
-    bins: list = None,
-    specs: list = None,
+    bins: list[int | float | str] | None = None,
+    specs: list[list[dict]] | None = None,
     **kwargs,
 ) -> PlotHandler:
     """
@@ -80,12 +84,12 @@ def build_standard_categorical_univariate_plot(
     df: pd.DataFrame,
     feature_col: str,
     target: str,
-    feature_type: str = "categorical",
+    feature_type: Literal["categorical", "numerical"] = "categorical",
     colors: PlotColors = PlotColors(),
-    hoverinfo="all",
+    hoverinfo: Literal["all", "none", "skip"] = "all",
     n_bins: int = 10,
-    bins: list = None,
-    specs: list = None,
+    bins: list[int | float | str] | None = None,
+    specs: list[list[dict]] | None = None,
     **kwargs,
 ) -> PlotHandler:
     """
@@ -117,18 +121,6 @@ def build_standard_categorical_univariate_plot(
     plot.build_subplot(event_plot, 1, 1)
 
     return plot
-
-
-def _get_max_bar_height(plots: list[BinEventRatePlot]) -> float:
-    max_bar_height = max([plot.max_bar_height for plot in plots])
-    logger.debug(f"max_bar_height: {max_bar_height}")
-    return np.ceil(max_bar_height * 11) / 10
-
-
-def _get_max_event_rate_height(plots: list[BinEventRatePlot]) -> float:
-    max_event_rate_height = max([plot.max_event_rate_height for plot in plots])
-    logger.debug(f"max_event_rate_height: {max_event_rate_height}")
-    return np.ceil(max_event_rate_height * 11) / 10
 
 
 # TODO: event rate should span the entire plot

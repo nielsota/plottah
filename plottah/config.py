@@ -10,9 +10,6 @@ from pydantic import BaseModel, validator
 ALLOWED_TYPES = ["float", "int", "categorical"]
 ROOT_DIR = Path(__file__).parent.parent
 
-# Basic types for repo
-NUMERICAL_BINS = list[int, float]
-
 
 def parse_from_yaml(path_to_yaml):
     """

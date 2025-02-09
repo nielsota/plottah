@@ -1,5 +1,6 @@
 from typing import List, Protocol
 
+import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
@@ -37,23 +38,26 @@ class PlotProtocol(Protocol):
 
     """
 
-    def do_math(self, df, feature_col, target_col, fillna: bool = False):
+    def do_math(
+        self,
+        df: pd.DataFrame,
+        feature_col: str,
+        target_col: str,
+        *args,
+        **kwargs,
+    ):
         """
         does the required math to generate the traces, annotations and axes for the roc-curve plot
         """
         ...
 
-    def get_traces(self) -> List[dict]:
-        ...
+    def get_traces(self) -> List[dict]: ...
 
-    def get_x_axes_layout(self, row: int, col: int) -> dict:
-        ...
+    def get_x_axes_layout(self, row: int, col: int) -> dict: ...
 
-    def get_y_axes_layout(self, row: int, col: int) -> dict:
-        ...
+    def get_y_axes_layout(self, row: int, col: int) -> dict: ...
 
-    def get_annotations(self, ref_x: str, ref_y: str) -> List[dict]:
-        ...
+    def get_annotations(self, ref_x: str, ref_y: str) -> List[dict]: ...
 
     def get_secondary_y_axis_title(self):
         return None

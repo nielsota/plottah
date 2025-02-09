@@ -1,6 +1,8 @@
 import pathlib
 from collections import defaultdict
-from typing import Dict
+from typing import Literal
+
+import numpy as np
 
 from plottah.colors import PlotColors
 from plottah.plot_builder.specific_builders import PLOT_BUILDERS_DICT
@@ -11,15 +13,15 @@ def build_univariate_plot(
     df,
     feature_col: str,
     target: str,
-    feature_type: str = "float",
-    specs: list = None,
+    feature_type: Literal["categorical", "numerical"] = "categorical",
+    specs: list[list[dict] | dict] | None = None,
     colors: PlotColors = PlotColors(),
     show_plot: bool = False,
-    hoverinfo="all",
+    hoverinfo: Literal["none", "skip"] = "all",
     n_bins: int = 10,
-    bins: list = None,
-    distplot_q_min: float = None,
-    distplot_q_max: float = None,
+    bins: list[int | float | str] | None = None,
+    distplot_q_min: float | None = None,
+    distplot_q_max: float | None = None,
 ):
     """
     buils standard univariate plot from days 'ye
@@ -60,15 +62,15 @@ def build_univariate_plots(
     df,
     features: list[str],
     target: str,
-    feature_types: dict[str, str],
+    feature_types: dict[str, Literal["categorical", "numerical"]],
     n_bins: dict[str, int] | None = None,
-    bins: dict[str, list] | None = None,
+    bins: dict[str, list[int | float | str]] | None = None,
     distplot_q_min: dict[str, float] | None = None,
     distplot_q_max: dict[str, float] | None = None,
     save_directory: pathlib.Path | None = None,
     colors: PlotColors = PlotColors(),
     show_plot: bool = False,
-    hoverinfo="none",
+    hoverinfo: Literal["none", "skip"] = "all",
 ) -> tuple[dict[str, PlotHandler], list[pathlib.Path]]:
     """
     function that generates standard univariate plots
