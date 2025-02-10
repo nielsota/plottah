@@ -33,7 +33,7 @@ def validate_color_string(color_string: str) -> bool:
 
 class FeatureSchema(BaseModel):
     name: str
-    type: Optional[str]
+    type: Optional[str] = "float"
     n_bins: Optional[int] = 10
     bins: Optional[list[int]] = None
     distplot_q_min: Optional[float] = None
@@ -107,7 +107,7 @@ class Settings(BaseModel):
     grey_tint_color: str
 
     @validator("file_path", "images_output_path", pre=True)
-    def path_must_exist(cls, v: Path) -> Path:
+    def path_must_exist(cls, v):
         """
         validates path specified in config. the path/file must exist before the code
         can execute the ensure valid reading and writing locations exist. This ensures
@@ -124,7 +124,7 @@ class Settings(BaseModel):
         return v
 
     @validator("powerpoint_output_path")
-    def parent_dir_must_exist(cls, v: Path) -> Path:
+    def parent_dir_must_exist(cls, v):
         """
         validates path specified in config. the path/file must exist before the code
         can execute the ensure valid reading and writing locations exist. This ensures
