@@ -1,21 +1,62 @@
+# Copyright © 2025 Boston Consulting Group. All rights reserved. Unauthorized use, reproduction, or distribution
+# of this software is strictly prohibited. This software is licensed for use only under terms
+# agreed upon with Boston Consulting Group.
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v3.2.0
+    rev: v4.4.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
-      - id: check-yaml
       - id: check-added-large-files
+        args: ['--maxkb=25600'] # allow up to 1MB
+      - id: check-json
+      - id: check-yaml
+      - id: check-merge-conflict
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+      - id: check-toml
+
+  # - repo: https://github.com/sqlfluff/sqlfluff
+  #   rev: 2.3.2
+  #   hooks:
+  #   - id: sqlfluff-lint
+  #     files: ^marketing_speedboat/.*\.sql$
+  #   - id: sqlfluff-fix
+  #     files: ^marketing_speedboat/.*\.sql$
+
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.6.1
+    hooks:
+      - id: nbstripout
+
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.0.267
+    hooks:
+      - id: ruff
+        args: [--config=pyproject.toml]
+
   - repo: https://github.com/psf/black
     rev: 23.3.0
     hooks:
-    - id: black
-      name: black
-      entry: black --line-length 120 .
-  - repo: local
+      - id: black
+        language_version: python3.12
+        args: [--config=pyproject.toml, --target-version=py311]
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.11.0
     hooks:
-    - id: jupyter-nb-clear-output
-      name: jupyter-no-clear-output
-      files: \.ipynb$
-      language: system
-      entry: jupyter nbconvert --clear-output --inplace
+    - id: mypy
+      entry: mypy
+      args: [--config-file=pyproject.toml]
+      types: [python]
+      exclude: '(src|tests)/'
+      additional_dependencies:
+        - pydantic
+        - types-pyyaml
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        name: isort (python)
+        args: ["--settings-path=pyproject.toml"]

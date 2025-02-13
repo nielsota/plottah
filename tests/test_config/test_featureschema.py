@@ -1,6 +1,6 @@
-from plottah.config import FeatureSchema
-
 import pytest
+
+from plottah.config import FeatureSchema
 
 
 @pytest.fixture

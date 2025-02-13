@@ -26,11 +26,11 @@ jobs:
 
       - name: Bump version
         run: |
-          poetry version patch 
+          poetry version patch
 
       - name: Build package
         run: poetry build
 
       - name: Publish package to PyPI
         run: |
-          poetry publish --username __token__ --password ${{ secrets.PYPI_API_TOKEN }} 
+          poetry publish --username __token__ --password ${{ secrets.PYPI_API_TOKEN }}

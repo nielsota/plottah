@@ -1,18 +1,17 @@
-from typing import Optional
-from pathlib import Path
-
 import re
-import yaml
-import pandas as pd
+from pathlib import Path
+from typing import Optional
 
-from pydantic import BaseModel, ValidationError, validator
+import pandas as pd  # type: ignore
+import yaml  # type: ignore
+from pydantic import BaseModel, validator  # type: ignore
 
 # use this over Literal to make custom error containing more info
 ALLOWED_TYPES = ["float", "int", "categorical"]
 ROOT_DIR = Path(__file__).parent.parent
 
 
-def parse_from_yaml(path_to_yaml):
+def parse_from_yaml(path_to_yaml: str) -> dict:
     """
     ability to parse config.yaml
     """
@@ -23,23 +22,29 @@ def parse_from_yaml(path_to_yaml):
     return config
 
 
-def validate_color_string(color_string):
+def is_in_unit_interval(number: float) -> bool:
+    return 0 <= number <= 1
+
+
+def validate_color_string(color_string: str) -> bool:
     pattern = r"^\d{1,3},\s?\d{1,3},\s?\d{1,3}$"
     return re.match(pattern, color_string) is not None
 
 
 class FeatureSchema(BaseModel):
     name: str
-    type: Optional[str]
+    type: Optional[str] = "float"
     n_bins: Optional[int] = 10
     bins: Optional[list[int]] = None
+    distplot_q_min: Optional[float] = None
+    distplot_q_max: Optional[float] = None
 
     # needs to be hashable: https://stackoverflow.com/questions/63721614/unhashable-type-in-fastapi-request
     class Config:
         frozen = True
 
     @validator("type")
-    def validate_type(cls, v, values):
+    def validate_type(cls, v: str, values: dict) -> str:
         if v not in ALLOWED_TYPES:
             raise ValueError(
                 f'Type for {values["name"]} must be in {ALLOWED_TYPES}, you passed type: {v}'
@@ -47,11 +52,47 @@ class FeatureSchema(BaseModel):
         return v
 
     @validator("bins")
-    def validate_bins_and_nbins(cls, bins, values):
+    def validate_bins_and_nbins(cls, bins: list[int], values: dict) -> list[int]:
         if len(bins) != values["n_bins"]:
             values["n_bins"] = len(bins)
             print(f'setting n_bins for {values["name"]} to {len(bins)} based on bins')
         return bins
+
+    @validator("distplot_q_min")
+    def validate_distplot_q_min(cls, v: float, values: dict) -> float:
+        # check the type
+        if not isinstance(v, float):
+            raise ValueError(
+                f'The min quantile you provided for {values["name"]} must be of type float, you passed type: {type(v)}'
+            )
+
+        # check on the unit interval
+        if not is_in_unit_interval(v):
+            raise ValueError(
+                f'The min quantile you for {values["name"]} must be between 0 and 1, you passed: {v}'
+            )
+        return v
+
+    @validator("distplot_q_max")
+    def validate_distplot_q_max(cls, v: float, values: dict) -> float:
+        # check the type
+        if not isinstance(v, float):
+            raise ValueError(
+                f'The max quantile you provided for {values["name"]} must be of type float, you passed type: {type(v)}'
+            )
+
+        # check on the unit interval
+        if not is_in_unit_interval(v):
+            raise ValueError(
+                f'The max quantile you for {values["name"]} must be between 0 and 1, you passed: {v}'
+            )
+
+        # check ordering
+        distplot_q_min = values.get("distplot_q_min", None)
+        if distplot_q_min is not None and v is not None and distplot_q_min > v:
+            raise ValueError("distplot_q_min must not be greater than distplot_q_max")
+
+        return v
 
 
 class Settings(BaseModel):
@@ -68,7 +109,9 @@ class Settings(BaseModel):
     @validator("file_path", "images_output_path", pre=True)
     def path_must_exist(cls, v):
         """
-        validates path specified in config. the path/file must exist before the code can execute the ensure valid reading and writing locations exist
+        validates path specified in config. the path/file must exist before the code
+        can execute the ensure valid reading and writing locations exist. This ensures
+        we have valid paths before attempting any file operations.
         """
 
         if not isinstance(v, Path):
@@ -83,7 +126,9 @@ class Settings(BaseModel):
     @validator("powerpoint_output_path")
     def parent_dir_must_exist(cls, v):
         """
-        validates path specified in config. the path/file must exist before the code can execute the ensure valid reading and writing locations exist
+        validates path specified in config. the path/file must exist before the code
+        can execute the ensure valid reading and writing locations exist. This ensures
+        we have valid paths before attempting any file operations.
         """
 
         if not isinstance(v, Path):
@@ -125,7 +170,9 @@ class Settings(BaseModel):
         for feature in v:
             if feature.name not in sample_df.columns:
                 raise ValueError(
-                    f"Column: {feature} does not exist is dataframe \n Please ensure the config.yaml contains only valid columns"
+                    f"Column: {feature} does not exist is dataframe \n"
+                    f"Please ensure the config.yaml contains only "
+                    f"valid columns"
                 )
 
         return v
@@ -143,7 +190,9 @@ class Settings(BaseModel):
 
         if v not in sample_df.columns:
             raise ValueError(
-                f"Column: {v} does not exist is dataframe \n Please ensure the config.yaml contains only valid columns"
+                f"Column: {v} does not exist is dataframe \n"
+                f"Please ensure the config.yaml contains "
+                f"only valid columns"
             )
         return v
 

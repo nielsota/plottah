@@ -1,13 +1,14 @@
-import plotly.graph_objects as go
-import numpy as np
+import logging
 from dataclasses import dataclass, field
-from sklearn import metrics
 
-from plottah.plots.PlotProtocol import PlotProtocol
-from plottah.utils import remove_or_impute_nan_infs
+import numpy as np  # type: ignore
+import plotly.graph_objects as go  # type: ignore
+from sklearn import metrics  # type: ignore
+
 from plottah.colors import PlotColors
+from plottah.plots.plot_protocol import PlotProtocol
+from plottah.utils import remove_or_impute_nan_infs
 
-import logging 
 
 @dataclass
 class RocCurvePlot(PlotProtocol):
@@ -16,6 +17,8 @@ class RocCurvePlot(PlotProtocol):
 
     # set hover setting
     hoverinfo: str = field(default_factory=lambda: "skip")
+    tick_font_size: int = field(default_factory=lambda: 10)
+    title_font_size: int = field(default_factory=lambda: 12)
 
     def do_math(self, df, feature_col, target_col, fillna: bool = False):
         """
@@ -82,7 +85,8 @@ class RocCurvePlot(PlotProtocol):
     def get_x_axes_layout(self, row, col):
         return dict(
             title_text="Cumulated negatives",
-            title_font={"size": 12},
+            title_font={"size": self.title_font_size},
+            tickfont={"size": self.tick_font_size},
             range=[0, 1],
             row=row,
             col=col,
@@ -92,7 +96,8 @@ class RocCurvePlot(PlotProtocol):
     def get_y_axes_layout(self, row, col):
         return dict(
             title_text="Cumulated positives",
-            title_font={"size": 12},
+            title_font={"size": self.title_font_size},
+            tickfont={"size": self.tick_font_size},
             range=[0, 1.05],
             row=row,
             col=col,

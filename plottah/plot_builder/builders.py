@@ -1,26 +1,27 @@
-from typing import Dict
-
 import pathlib
+from collections import defaultdict
+from typing import Literal, Sequence
 
-from pptx import Presentation
-from pptx.util import Inches, Pt
+import pandas as pd  # type: ignore
 
-from plottah.plot_handler import PlotHandler
 from plottah.colors import PlotColors
 from plottah.plot_builder.specific_builders import PLOT_BUILDERS_DICT
+from plottah.plot_handler import PlotHandler
 
 
 def build_univariate_plot(
-    df,
+    df: pd.DataFrame,
     feature_col: str,
     target: str,
-    feature_type: str = "float",
+    feature_type: Literal["categorical", "numerical"] = "categorical",
+    specs: list[list[dict] | dict] | None = None,
     colors: PlotColors = PlotColors(),
     show_plot: bool = False,
-    hoverinfo="all",
+    hoverinfo: Literal["none", "skip"] = "all",
     n_bins: int = 10,
-    bins: list = None,
-    specs: list = None,
+    bins: list[int | float | str] | None = None,
+    distplot_q_min: float | None = None,
+    distplot_q_max: float | None = None,
 ):
     """
     buils standard univariate plot from days 'ye
@@ -32,10 +33,10 @@ def build_univariate_plot(
     feature_type = feature_type if feature_type == "categorical" else "numerical"
 
     # get appropriate plot builder
-    plot_builder = PLOT_BUILDERS_DICT[feature_type]
+    plot_builder_function = PLOT_BUILDERS_DICT[feature_type]
 
     # build plot
-    plot = plot_builder(
+    plot = plot_builder_function(
         df,
         feature_col=feature_col,
         target=target,
@@ -46,6 +47,8 @@ def build_univariate_plot(
         n_bins=n_bins,
         bins=bins,
         specs=specs,
+        distplot_q_min=distplot_q_min,
+        distplot_q_max=distplot_q_max,
     )
 
     # show the plot if show_plot set to true
@@ -57,16 +60,18 @@ def build_univariate_plot(
 
 def build_univariate_plots(
     df,
-    features: list,
+    features: list[str],
     target: str,
-    feature_types: dict,
-    n_bins: dict = None,
-    bins: dict = None,
-    save_directory: pathlib.Path() = None,
+    feature_types: dict[str, Literal["categorical", "numerical"]],
+    n_bins: dict[str, int] | None = None,
+    bins: dict[str, Sequence[int | float | str]] | None = None,
+    distplot_q_min: dict[str, float | None] | None = None,
+    distplot_q_max: dict[str, float | None] | None = None,
+    save_directory: pathlib.Path | None = None,
     colors: PlotColors = PlotColors(),
     show_plot: bool = False,
-    hoverinfo="none",
-) -> Dict[str, PlotHandler]:
+    hoverinfo: Literal["none", "skip"] = "all",
+) -> tuple[dict[str, PlotHandler], list[pathlib.Path]]:
     """
     function that generates standard univariate plots
 
@@ -79,6 +84,7 @@ def build_univariate_plots(
         Dict: map from feature name to figure
 
     """
+
     # if only a single feature passed wrap in a list
     if isinstance(features, str):
         features = [features]
@@ -91,6 +97,7 @@ def build_univariate_plots(
     if n_bins is None:
         n_bins = {feature: 10 for feature in features}
     else:
+        # n_bins = defaultdict(lambda: 10, n_bins)
         for feature in features:
             # user does not have to provide complete mapping
             if feature not in n_bins.keys():
@@ -98,7 +105,21 @@ def build_univariate_plots(
 
     # create mapping from features to float if type not provided
     if feature_types is None:
-        feature_types = {feature: "float" for feature in features}
+        feature_types = {feature: "numerical" for feature in features}
+
+    # test - need to return None if user did not provive q min for all features but only some
+    if distplot_q_min is None:
+        distplot_q_min = {feature: None for feature in features}
+    else:
+        # user does not have to provide complete mapping
+        distplot_q_min = defaultdict(lambda: None, distplot_q_min)
+
+    # test - need to return None if user did not provive q min for all features but only some
+    if distplot_q_max is None:
+        distplot_q_max = {feature: None for feature in features}
+    else:
+        # user does not have to provide complete mapping
+        distplot_q_max = defaultdict(lambda: None, distplot_q_max)
 
     # Run loop
     figs = {}
@@ -118,6 +139,8 @@ def build_univariate_plots(
             hoverinfo=hoverinfo,
             n_bins=n_bins[feature],
             bins=bins[feature],
+            distplot_q_min=distplot_q_min[feature],
+            distplot_q_max=distplot_q_max[feature],
         )
 
         if save_directory is not None:
@@ -130,29 +153,25 @@ def build_univariate_plots(
     return figs, save_locs
 
 
-def build_powerpoint(
-    fig_locs: list,
-    feature_names: list,
-    save_path: pathlib.Path(),
-):
-    pres = Presentation()
+if __name__ == "__main__":
+    import numpy as np  # type: ignore
+    import pandas as pd  # type: ignore
 
-    for i, fig_loc in enumerate(fig_locs):
-        s_register = pres.slide_layouts[7]
-        s = pres.slides.add_slide(s_register)
+    # generate some data
+    df = pd.DataFrame(
+        {
+            "feature": np.random.randint(0, 100, size=100),
+            "target": np.random.randint(0, 2, size=100),
+        }
+    )
 
-        pic = s.shapes.add_picture(
-            str(pathlib.Path(fig_loc).resolve()),
-            Inches(0.5),
-            Inches(1.75),
-            width=Inches(7),
-            height=Inches(5),
-        )
-        pic.left = int((pres.slide_width - pic.width) / 2)
+    # build plots
+    fig = build_univariate_plot(
+        df=df,
+        feature_col="feature",
+        target="target",
+        feature_type="float",
+        show_plot=False,
+    )
 
-        title = s.shapes.title
-        title.text = f"{i} Univariate analysis for {(feature_names)[i]}"
-        title_para = s.shapes.title.text_frame.paragraphs[0]
-        title_para.font.size = Pt(24)
-
-    pres.save(save_path)
+    print("done")

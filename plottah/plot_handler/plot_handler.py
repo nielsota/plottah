@@ -1,11 +1,12 @@
-from plotly.subplots import make_subplots
-from dataclasses import dataclass, field
-from plottah.plots import PlotProtocol
-from typing import Protocol
 import pathlib
+from dataclasses import dataclass, field
+from typing import Protocol
 
-import pandas as pd
-import logging
+import pandas as pd  # type: ignore
+from loguru import logger  # type: ignore
+from plotly.subplots import make_subplots  # type: ignore
+
+from plottah.plots import PlotProtocol
 
 
 # going after a factory design pattern here
@@ -64,7 +65,9 @@ class PlotHandler:
     specs: list = field(
         default_factory=lambda: [[{}, {}], [{"colspan": 2, "secondary_y": True}, None]]
     )
-    plot_title: str = field(default_factory=lambda: None)
+    plot_title: str | None = field(default_factory=lambda: None)
+    horizontal_spacing: float = field(default_factory=lambda: 0.1)
+    vertical_spacing: float = field(default_factory=lambda: 0.15)
 
     def __post_init__(self):
         """
@@ -82,9 +85,11 @@ class PlotHandler:
         [(x1, y1 & y2), (None, None)],
         [(x2, y3), (x3, y4)]
 
-        This last option means that we cannot simply use the row and column number to map to xref - the 2,1 element does not always map to x3.
+        This last option means that we cannot simply use the row and column number to map to xref
+        - the 2,1 element does not always map to x3.
 
-        This post init method uses the specs to obtain a map from the position of the subplot to what x and y ref it should use.
+        This post init method uses the specs to obtain a map from the position of the subplot to
+        what x and y ref it should use.
 
         """
         # check if default spec was used
@@ -106,7 +111,7 @@ class PlotHandler:
 
         counter = 1
         self.xrefs = [
-            [f"x?" for j, el in enumerate(row)] for i, row in enumerate(self.specs)
+            ["x?" for j, el in enumerate(row)] for i, row in enumerate(self.specs)
         ]
 
         self.yrefs = [
@@ -128,7 +133,7 @@ class PlotHandler:
         cols = range(self.ncols)
         for i in rows:
             for j in cols:
-                if self.specs[i][j] == None:
+                if self.specs[i][j] is None:
                     self.legend_xref = i
                 else:
                     self.xrefs[i][j] = f"x{counter}"
@@ -139,8 +144,8 @@ class PlotHandler:
         self.fig = make_subplots(
             rows=self.nrows,
             cols=self.ncols,
-            vertical_spacing=0.15,
-            horizontal_spacing=0.1,
+            vertical_spacing=self.vertical_spacing,
+            horizontal_spacing=self.horizontal_spacing,
             specs=self.specs,
         )
 
@@ -178,7 +183,7 @@ class PlotHandler:
 
         """
         # add traces
-        logging.info(f"Building traces for {self.feature_col}")
+        logger.debug(f"Building traces for {self.feature_col}")
         for trace_dict in subplot.get_traces():
             self.fig.add_trace(
                 trace_dict["trace"],
@@ -188,32 +193,33 @@ class PlotHandler:
             )
 
         # add annotations
-        logging.info(f"Building annotations for {self.feature_col}")
+        logger.debug(f"Building annotations for {self.feature_col}")
         for annotation in subplot.get_annotations(
             self.xrefs[row - 1][col - 1], self.yrefs[row - 1][col - 1]
         ):
             self.fig.add_annotation(**annotation)
 
         # update axes layout if specifed
-        logging.info(f"Building x axes for {self.feature_col}")
+        logger.debug(f"Building x axes for {self.feature_col}")
         if subplot.get_x_axes_layout(row, col) is not None:
             self.fig.update_xaxes(**subplot.get_x_axes_layout(row, col))
 
-        logging.info(f"Building y axes for {self.feature_col}")
+        logger.debug(f"Building y axes for {self.feature_col}")
         if subplot.get_y_axes_layout(row, col) is not None:
             self.fig.update_yaxes(**subplot.get_y_axes_layout(row, col))
 
         # update secondary y_axis if applicable
-
         if subplot.get_secondary_y_axis_title() is not None:
-            logging.info(f"Building secondary y-axes title for {self.feature_col}")
-            # name of axis contained in self.yaxes on index (row - 1, col - 1) is the primary axes, plotly will store the secondary yaxis one further; i.e. stored at index (row - 1 , col)
+            logger.debug(f"Building secondary y-axes title for {self.feature_col}")
+            # name of axis contained in self.yaxes on index (row - 1, col - 1) is the primary axes,
+            # plotly will store the secondary yaxis one further; i.e. stored at index (row - 1 , col)
+            # TODO: define a function to get the secondary yaxis name and encapsulate this logic
             secondary_yaxis = self.yaxes[row - 1][col]
-            logging.info(f"Got secondary y-axes title for {self.feature_col}")
+            logger.debug(f"Got secondary y-axes title for {self.feature_col}")
             self.fig.layout[
                 secondary_yaxis
             ].title.text = subplot.get_secondary_y_axis_title()
-            logging.info(f"Got layout y-axes title for {self.feature_col}")
+            logger.debug(f"Got layout y-axes title for {self.feature_col}")
 
     def build(
         self,
@@ -243,7 +249,9 @@ class PlotHandler:
         """
         if not self.default_spec:
             raise ValueError(
-                "build function only works for default specs, use build_subplot with each individual subplot for your specs"
+                "build function only works for default specs, "
+                "use build_subplot with each individual subplot "
+                "for your specs"
             )
 
         # do the math for each subplot
@@ -252,13 +260,13 @@ class PlotHandler:
         bottom.do_math(df, feature_col, target)
 
         # build each of the subplots
-        logging.info("Building topleft subplot")
+        logger.debug("Building topleft subplot")
         self.build_subplot(topleft, 1, 1)
-        logging.info("Building topright subplot")
+        logger.debug("Building topright subplot")
         self.build_subplot(topright, 1, 2)
-        logging.info("Building bottom subplot")
+        logger.debug("Building bottom subplot")
         self.build_subplot(bottom, 2, 1)
-        logging.info("Finished building subplots")
+        logger.debug("Finished building subplots")
 
         if show_fig:
             self.show()

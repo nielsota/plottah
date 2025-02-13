@@ -1,6 +1,6 @@
-from plottah.config import Settings
-
 import pytest
+
+from plottah.config import Settings
 
 
 @pytest.fixture

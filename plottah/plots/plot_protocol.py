@@ -1,7 +1,8 @@
-from typing import Protocol, List
-from plotly.subplots import make_subplots
+from typing import List, Protocol
 
-import plotly.graph_objects as go
+import pandas as pd  # type: ignore
+import plotly.graph_objects as go  # type: ignore
+from plotly.subplots import make_subplots  # type: ignore
 
 
 class PlotProtocol(Protocol):
@@ -37,7 +38,14 @@ class PlotProtocol(Protocol):
 
     """
 
-    def do_math(self, df, feature_col, target_col, fillna: bool = False):
+    def do_math(
+        self,
+        df: pd.DataFrame,
+        feature_col: str,
+        target_col: str,
+        *args,
+        **kwargs,
+    ):
         """
         does the required math to generate the traces, annotations and axes for the roc-curve plot
         """
@@ -52,7 +60,7 @@ class PlotProtocol(Protocol):
     def get_y_axes_layout(self, row: int, col: int) -> dict:
         ...
 
-    def get_annotations(self, ref: str) -> List[dict]:
+    def get_annotations(self, ref_x: str, ref_y: str) -> List[dict]:
         ...
 
     def get_secondary_y_axis_title(self):
@@ -71,7 +79,7 @@ class PlotProtocol(Protocol):
             )
 
         # add annotations
-        for annotation in self.get_annotations("x1", "y1"):
+        for annotation in self.get_annotations(ref_x="x1", ref_y="y1"):
             figure.add_annotation(**annotation)
 
         # update axes layout if specifed
