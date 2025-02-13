@@ -1,62 +1,69 @@
 *Copyright © 2024 by Boston Consulting Group. All rights reserved*
 # SmartBanking Plotting tool
 
-## Setup
+A Python package for generating standardized plots and visualizations for SmartBanking analysis.
 
-### Requirements
+## Installation
 
-* Python (>=3.8)
+There are two ways to use this package:
 
-### Development environment
+### 1. Install from PyPI (Recommended)
 
-Clone the repo, give name plotting_analyis
-```shell
-git clone git@github.com:nielsota/plottah.git plotting_analysis
-```
-
-CD into the directory
-```shell
-cd plotting_analysis
-```
-
-Create a virtual environment by running:
+If you just want to use the package:
 
 ```shell
-python -m venv venv
+pip install plottah
 ```
 
-The virtual environment should be activated every time you start a new shell session before running subsequent commands:
+### 2. Local Development Setup
 
-> On Linux/MacOS:
-> ```shell
-> source venv/bin/activate
-> ```
-> On Windows (bash/cmd):
-> ```shell
-> venv/Scripts/activate
-> ```
-> On Windows (ps):
-> ```shell
-> venv\Scripts\activate
-> ```
-Make sure you have the latest pip version
+If you want to contribute or modify the package:
+
+1. Clone the repository:
 ```shell
-python -m pip install --upgrade pip
+git clone git@github.com:nielsota/plottah.git
+cd plottah
 ```
 
-Then install the packages listed in the requirements.txt
+2. Install Poetry (if you haven't already):
 ```shell
-pip install -r requirements.txt
+curl -sSL https://install.python-poetry.org | python3 -
 ```
 
-Then install the repository locally
+3. Install dependencies and set up the development environment:
 ```shell
-pip install -e .
+poetry install
 ```
 
-Next, update the config.yaml how you see fit, and then to generate the images run:
+4. Activate the poetry shell:
 ```shell
-python -m plottah
+poetry shell
 ```
 
-See notebooks for examples on how to run code inline during development
+## Usage
+
+### As an installed package
+
+```python
+from plottah import generate_plots
+
+# Use the package functions directly
+generate_plots()
+```
+
+### Local development with config
+
+1. Update the `config.yaml` file with your desired settings
+2. Run the plotting tool:
+```shell
+poetry run python -m plottah
+```
+
+## Examples
+
+See the `notebooks/` directory for detailed examples of how to use the package during development.
+
+## Requirements
+
+* Python >=3.8
+* Poetry for development setup
