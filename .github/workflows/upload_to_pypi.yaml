@@ -1,9 +1,14 @@
 name: Upload to PyPI
 
+# Comment out or modify the trigger
+# on:
+#   push:
+#     branches:
+#       - main
+
+# Alternative: Set to manual trigger only
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
   upload_to_pypi:
