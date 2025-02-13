@@ -83,6 +83,7 @@ def test_main(return_settings):
         colors=color_palette,
         bins=bins,
         n_bins=n_bins,
+        show_plot=False,
     )
 
 
