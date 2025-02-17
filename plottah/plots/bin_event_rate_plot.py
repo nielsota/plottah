@@ -8,13 +8,9 @@ from loguru import logger  # type: ignore
 
 from plottah.colors import PlotColors
 from plottah.plots.plot_protocol import PlotProtocol
-from plottah.utils import (
-    generate_bins,
-    get_labels_from_bins,
-    get_min_max_adj,
-    validate_binary_target,
-    validate_feature_column_presence,
-)
+from plottah.utils import (generate_bins, get_labels_from_bins,
+                           get_min_max_adj, validate_binary_target,
+                           validate_feature_column_presence)
 
 MIN_N_UNIQUE = 3
 NUMERICAL_BINS = list[int | float]
@@ -117,7 +113,7 @@ class StandardBinner:
         n_bins: int,
         max_val: float | int,
         feature_col: str,
-    ):
+    ) -> bool:
         """Validate provided bins."""
         logger.debug(f"Validating provided bins for feature {feature_col}: {bins}")
 
@@ -172,13 +168,14 @@ class StandardBinner:
                 f"Please revise the bins. Currently (after replacing smallest and largest bin by min/max): {bins}"
             )
         logger.info(f"using bins: {bins}")
+        return True
 
     def _assign_bins(
         self,
         df: pd.DataFrame,
         bins: NUMERICAL_BINS,
         feature_col: str,
-    ):
+    ) -> pd.DataFrame:
         """Assign bins to dataframe."""
         logger.debug(f"Assigning bins to dataframe: {bins}")
         # Create bins (return None if binning is not successfull)
@@ -202,7 +199,7 @@ class StandardBinner:
 
     def _clip_values(
         self, df: pd.DataFrame, feature_col: str, min_val: float, max_val: float
-    ):
+    ) -> pd.DataFrame:
         """Clips values in feature_col between min_val and max_val."""
         logger.debug(
             f"Clipping values in {feature_col} between {min_val} and {max_val}"
@@ -215,7 +212,9 @@ class StandardBinner:
             )
         return df
 
-    def _handle_nas(self, df: pd.DataFrame, n_bins: int):
+    def _handle_nas(
+        self, df: pd.DataFrame, n_bins: int
+    ) -> tuple[pd.DataFrame, list[str | float | int]]:
         """Handle NAs by adding a new bin with the NA label"""
         logger.debug(f"Handling NA values in bins column. Current n_bins: {n_bins}")
         if df["bins"].isna().sum() > 0:
@@ -227,14 +226,14 @@ class StandardBinner:
             n_bins += 1
         return df, n_bins
 
-    def _set_bins_to_categories(self, df: pd.DataFrame, n_bins: int):
+    def _set_bins_to_categories(self, df: pd.DataFrame, n_bins: int) -> pd.DataFrame:
         """Set bins to categories."""
         logger.debug(f"Converting bins to categorical with {n_bins-1} categories")
         df.bins = df.bins.astype("category")
         df.bins = df.bins.cat.set_categories(list(range(n_bins - 1)))
         return df
 
-    def get_labels(self):
+    def get_labels(self) -> list[str | float | int]:
         return self._labels.copy()
 
     def add_bins(
@@ -377,6 +376,16 @@ class BinEventRatePlot(PlotProtocol):
         default_factory=lambda: True
     )  # used if no samples in a bin; i.e., divide by 0
 
+    # Add new option for showing values
+    show_event_rate_values: bool = field(default_factory=lambda: False)
+    event_rate_value_position: Literal["top center", "bottom center"] = field(
+        default_factory=lambda: "top center"
+    )
+    event_rate_value_format: str = field(
+        default_factory=lambda: ".1%"
+    )  # Format as percentage with 1 decimal
+    event_rate_value_font_size: int = field(default_factory=lambda: 10)
+
     def __post_init__(self):
         # Set default y-axis titles if not provided
         if self.y_title is None:
@@ -441,9 +450,9 @@ class BinEventRatePlot(PlotProtocol):
         )
 
         # Set NA counts to zero
-        event_rate_and_size_per_bin_df[f"{feature_col}_len"] = (
-            event_rate_and_size_per_bin_df[f"{feature_col}_len"].fillna(0)
-        )
+        event_rate_and_size_per_bin_df[
+            f"{feature_col}_len"
+        ] = event_rate_and_size_per_bin_df[f"{feature_col}_len"].fillna(0)
 
         # make fractions
         event_rate_and_size_per_bin_df[f"{feature_col}_frac"] = (
@@ -478,20 +487,39 @@ class BinEventRatePlot(PlotProtocol):
         }
 
     def _get_event_rate_trace(self) -> Dict:
-        return {
-            "trace": go.Scatter(
-                x=self.labels,
-                y=self.event_rate_and_size_per_bin_df[f"{self.target_col}_mean"],
-                mode="lines+markers",
-                line=dict(
-                    color=self.colors.get_rgba(),
-                    width=1,
-                ),
-                hoverinfo=self.hoverinfo,
-                name="Event Rate",
-                showlegend=self.show_legend,
+        mode = "lines+markers"
+        if self.show_event_rate_values:
+            mode += "+text"
+
+        trace_config = {
+            "x": self.labels,
+            "y": self.event_rate_and_size_per_bin_df[f"{self.target_col}_mean"],
+            "mode": mode,
+            "line": dict(
+                color=self.colors.get_rgba(),
+                width=1,
             ),
-            # share y
+            "hoverinfo": self.hoverinfo,
+            "name": "Event Rate",
+            "showlegend": self.show_legend,
+        }
+
+        if self.show_event_rate_values:
+            trace_config.update(
+                {
+                    "text": [
+                        f"{val:{self.event_rate_value_format}}"
+                        for val in self.event_rate_and_size_per_bin_df[
+                            f"{self.target_col}_mean"
+                        ]
+                    ],
+                    "textposition": self.event_rate_value_position,
+                    "textfont": dict(size=self.event_rate_value_font_size),
+                }
+            )
+
+        return {
+            "trace": go.Scatter(**trace_config),
             "secondary_y": True,
         }
 

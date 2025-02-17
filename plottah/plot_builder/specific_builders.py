@@ -7,10 +7,8 @@ from plotly.subplots import make_subplots  # type: ignore
 from plottah.colors import PlotColors
 from plottah.plot_handler import PlotHandler
 from plottah.plots import BinEventRatePlot, DistPlot, RocCurvePlot
-from plottah.plots.bin_event_rate_plot import (
-    _get_max_bar_height,
-    _get_max_event_rate_height,
-)
+from plottah.plots.bin_event_rate_plot import (_get_max_bar_height,
+                                               _get_max_event_rate_height)
 
 #### Responsibility: put together specific Plots and Handlers into graphs
 
@@ -28,9 +26,11 @@ def build_standard_numerical_univariate_plot(
     **kwargs,
 ) -> PlotHandler:
     """
-    Build a standard numerical univariate plot consisting of ROC Curve, Distribution Plot, and Bin Event Rate Plot.
+    Build a standard numerical univariate plot consisting of ROC Curve, Distribution Plot,
+    and Bin Event Rate Plot.
 
-    This function compiles various subplots into a comprehensive plot that visualizes the relationship between a numerical feature and a target variable.
+    This function compiles various subplots into a comprehensive plot that visualizes
+    the relationship between a numerical feature and a target variable.
 
     Parameters
     ----------
@@ -200,11 +200,16 @@ def build_split_bin_event_rate_plot(
     secondary_y_title: str | None = None,
     title_standoff: int = 5,
     fillna_event_rate: bool = True,
+    show_event_rate_values: bool = False,
+    event_rate_value_position: Literal["top center", "bottom center"] = "top center",
+    event_rate_value_format: str = ".1%",
+    event_rate_value_font_size: int = 10,
 ) -> Figure:
     """
     Build a split bin event rate plot with separate subplots for two different dataframes.
 
-    This function creates a Plotly figure with two subplots, each showing the event rates across specified bins for the top and bottom dataframes.
+    This function creates a Plotly figure with two subplots, each showing the event rates
+    across specified bins for the top and bottom dataframes.
 
     Parameters
     ----------
@@ -275,6 +280,10 @@ def build_split_bin_event_rate_plot(
         hoverinfo=hoverinfo,
         title_standoff=title_standoff,
         fillna_event_rate=fillna_event_rate,
+        show_event_rate_values=show_event_rate_values,
+        event_rate_value_position=event_rate_value_position,
+        event_rate_value_format=event_rate_value_format,
+        event_rate_value_font_size=event_rate_value_font_size,
         # FIXED ARGUMENTS
         show_legend=True,
     )
@@ -290,6 +299,10 @@ def build_split_bin_event_rate_plot(
         hoverinfo=hoverinfo,
         title_standoff=title_standoff,
         fillna_event_rate=fillna_event_rate,
+        show_event_rate_values=show_event_rate_values,
+        event_rate_value_position=event_rate_value_position,
+        event_rate_value_format=event_rate_value_format,
+        event_rate_value_font_size=event_rate_value_font_size,
         # FIXED ARGUMENTS
         show_legend=False,
     )
@@ -411,6 +424,10 @@ if __name__ == "__main__":
         legend_font_size=18,
         fillna_event_rate=False,
         title_standoff=10,
+        show_event_rate_values=True,
+        event_rate_value_position="top center",
+        event_rate_value_format=".1%",
+        event_rate_value_font_size=18,
     )
 
     plot.show()
